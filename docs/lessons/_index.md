@@ -4,4 +4,6 @@
 
 | Card | Scope | Tags | Date |
 |---|---|---|---|
+| `skill-evals-should-inline-skill-context-for-subagents` | project | `skills`, `evals`, `subagents`, `prompts` | 2026-03-12 |
+| `skill-loader-must-deduplicate-realpath-traversal` | project | `skills`, `loader`, `symlink`, `traversal` | 2026-03-12 |
 | `skill-loader-must-ignore-bad-user-skills` | project | `skills`, `loader`, `startup`, `validation` | 2026-03-12 |

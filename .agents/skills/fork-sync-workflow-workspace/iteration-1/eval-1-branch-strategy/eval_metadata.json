@@ -1,0 +1,6 @@
+{
+  "eval_id": 1,
+  "eval_name": "branch-strategy",
+  "prompt": "我的 repo 是 fork 來的，origin 是我的 fork，upstream 是原作者 repo。我要長期維護自己的功能，同時持續同步 upstream，分支怎麼管理比較好？我偏好 squash merge。",
+  "assertions": []
+}

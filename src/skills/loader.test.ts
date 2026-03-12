@@ -69,6 +69,26 @@ describe('loadSkillsFromDirectories', () => {
     expect(skills.atlas?.template).toContain('$ARGUMENTS');
   });
 
+  it('does not append duplicate $ARGUMENTS blocks to wrapped skills', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'skill-loader-'));
+    tempDirs.push(root);
+    const skillDir = join(root, 'repo-map');
+    await mkdir(skillDir, { recursive: true });
+    await writeFile(
+      join(skillDir, 'SKILL.md'),
+      '---\ndescription: Map repo\n---\nUse this skill with:\n<user-request>\n$ARGUMENTS\n</user-request>\n',
+    );
+
+    const skills = await loadSkillsFromDirectories([
+      { path: root, source: 'agents' },
+    ]);
+
+    expect(skills['repo-map']?.template.match(/\$ARGUMENTS/g)?.length).toBe(1);
+    expect(skills['repo-map']?.template.match(/<user-request>/g)?.length).toBe(
+      1,
+    );
+  });
+
   it('resolves root-level @path references relative to the skill directory', async () => {
     const root = await mkdtemp(join(tmpdir(), 'skill-loader-'));
     tempDirs.push(root);
@@ -142,6 +162,27 @@ describe('loadSkillsFromDirectories', () => {
     ]);
 
     expect(skills.brainstorming?.description).toBe('Brainstorm');
+  });
+
+  it('avoids repeated traversal through cyclic symlink directories', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'skill-loader-'));
+    tempDirs.push(root);
+    await mkdir(join(root, 'dir'), { recursive: true });
+    await writeFile(join(root, 'dir', 'note.txt'), 'x');
+    await symlink(join(root, 'dir'), join(root, 'alias'));
+    await symlink(root, join(root, 'dir', 'back'));
+
+    await expect(
+      Promise.race([
+        loadSkillsFromDirectories([{ path: root, source: 'agents' }]),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error('timed out traversing symlinks')),
+            200,
+          ),
+        ),
+      ]),
+    ).resolves.toEqual({});
   });
 
   it('ignores non-skill markdown files', async () => {

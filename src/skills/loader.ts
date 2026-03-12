@@ -1,5 +1,5 @@
 import { type Dirent, existsSync } from 'node:fs';
-import { readdir, readFile, stat } from 'node:fs/promises';
+import { readdir, readFile, realpath, stat } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { basename, dirname, join, relative } from 'node:path';
 import { parseFrontmatter } from '../utils';
@@ -63,7 +63,10 @@ function resolveSkillPathReferences(body: string, dir: string): string {
 
 function wrapSkillTemplate(body: string, dir: string): string {
   const resolvedBody = resolveSkillPathReferences(body, dir);
-  return `<skill-instruction>\nBase directory for this skill: ${dir}/\nFile references (@path) in this skill are relative to this directory.\n\n${resolvedBody}</skill-instruction>\n\n<user-request>\n$ARGUMENTS\n</user-request>`;
+  const requestBlock = resolvedBody.includes('$ARGUMENTS')
+    ? ''
+    : '\n\n<user-request>\n$ARGUMENTS\n</user-request>';
+  return `<skill-instruction>\nBase directory for this skill: ${dir}/\nFile references (@path) in this skill are relative to this directory.\n\n${resolvedBody}</skill-instruction>${requestBlock}`;
 }
 
 function createSkillTemplate(
@@ -82,7 +85,27 @@ async function collectSkillFiles(
   root: string,
   source: SkillSource,
   currentDir = root,
+  visitedDirs = new Set<string>(),
 ): Promise<SkillFile[]> {
+  let resolvedDir: string;
+
+  try {
+    resolvedDir = await realpath(currentDir);
+  } catch (error) {
+    log('[skills] failed to resolve skill directory', {
+      root: relative(process.cwd(), currentDir),
+      source,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return [];
+  }
+
+  if (visitedDirs.has(resolvedDir)) {
+    return [];
+  }
+
+  visitedDirs.add(resolvedDir);
+
   let entries: Dirent[];
 
   try {
@@ -119,7 +142,9 @@ async function collectSkillFiles(
           source,
         });
       } else {
-        files.push(...(await collectSkillFiles(root, source, entryPath)));
+        files.push(
+          ...(await collectSkillFiles(root, source, entryPath, visitedDirs)),
+        );
       }
 
       continue;
