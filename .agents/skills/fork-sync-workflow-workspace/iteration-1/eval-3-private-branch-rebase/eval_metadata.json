@@ -1,0 +1,6 @@
+{
+  "eval_id": 3,
+  "eval_name": "private-branch-rebase",
+  "prompt": "我的 feature branch 還沒開 PR，也還沒分享給別人。上游更新了，我想保持 branch 歷史乾淨，但最後還是會 squash merge。這時候該 merge 還是 rebase？",
+  "assertions": []
+}
