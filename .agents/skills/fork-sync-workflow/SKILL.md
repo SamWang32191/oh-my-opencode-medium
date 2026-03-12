@@ -1,6 +1,6 @@
 ---
 name: fork-sync-workflow
-description: Use when working in a forked Git repository with `origin` pointing to a personal fork and `upstream` pointing to the source repository, especially when deciding how to sync upstream changes, keep a review branch current, or manage feature branches around a squash-merge workflow.
+description: Use when a user is working in a forked Git repository and needs branch-strategy advice involving origin and upstream remotes, syncing upstream into a fork, deciding merge vs rebase for a reviewed or private feature branch, checking whether the long-lived branch is main or master, or maintaining a squash-merge workflow. Use this whenever a fork-sync question appears, even if the user asks about only one step.
 ---
 
 # Fork Sync Workflow

@@ -1,0 +1,82 @@
+[
+  {
+    "query": "我的 repo 是 fork 來的，origin 指到我自己的 GitHub fork，upstream 是原作者 repo。我想長期維護自己的 patch，而且最後都會 squash merge 回 master，分支要怎麼管比較乾淨？",
+    "should_trigger": true
+  },
+  {
+    "query": "upstream/master 剛更新，但我手上有一個正在 review 的 feature branch。這個 branch 之後會 squash merge 回我的 fork。現在該 rebase 還是 merge？",
+    "should_trigger": true
+  },
+  {
+    "query": "我有個私人 branch 還沒開 PR，也沒分享給別人。上游更新了，我想保持歷史乾淨，最後還是 squash merge。這時候建議我 rebase 嗎？",
+    "should_trigger": true
+  },
+  {
+    "query": "這個 fork 到底是用 main 還是 master 我有點忘了。同步 upstream 之前，我應該先查哪些 git / gh 指令？",
+    "should_trigger": true
+  },
+  {
+    "query": "我剛跑完比對，origin/master 和 upstream/master 好像一樣。這種情況還要 merge upstream 嗎？",
+    "should_trigger": true
+  },
+  {
+    "query": "我的 fork 平常都從 upstream 跟新功能，我偏好 squash merge。可以幫我整理一套固定 git flow 嗎？",
+    "should_trigger": true
+  },
+  {
+    "query": "現在 branch 已經丟給同事 review 了，但 upstream 又前進兩個 commit。我要怎麼更新 branch 才不會把 review 歷史搞亂？",
+    "should_trigger": true
+  },
+  {
+    "query": "我想確認自己的 fork default branch 是 main 還是 master，再決定後面所有同步指令，你會先做哪些檢查？",
+    "should_trigger": true
+  },
+  {
+    "query": "我在 fork repo 裡面，origin 是我自己，upstream 是官方。之後每個 feature 都會 squash merge 回去。請直接給我推薦的 branch model 跟同步方式。",
+    "should_trigger": true
+  },
+  {
+    "query": "我剛把 PR merge 回自己的 fork 了，接下來要不要刪 branch、怎麼保持 master 跟 upstream 對齊？",
+    "should_trigger": true
+  },
+  {
+    "query": "幫我把這個 function rename 成 getCurrentWorkingDirectory，整個 repo 一起改。",
+    "should_trigger": false
+  },
+  {
+    "query": "我的 feature branch 在 review 中，但 CI 壞了，幫我看是哪個 test 掛掉。",
+    "should_trigger": false
+  },
+  {
+    "query": "我要把 GitHub 上那個 PR 用 squash merge 合掉，順便刪 branch。",
+    "should_trigger": false
+  },
+  {
+    "query": "請解釋一下 git fetch 跟 git pull 差在哪。",
+    "should_trigger": false
+  },
+  {
+    "query": "我想把 upstream remote 加到這個 repo，可以給我指令嗎？",
+    "should_trigger": false
+  },
+  {
+    "query": "我有 main、staging、production 三條長期分支，想做 release train，分支策略怎麼設計？",
+    "should_trigger": false
+  },
+  {
+    "query": "我的 repo 不是 fork，只是單純跟 origin/main 協作。feature branch 要不要 rebase？",
+    "should_trigger": false
+  },
+  {
+    "query": "幫我看這個 GitHub Action workflow 為什麼沒觸發。",
+    "should_trigger": false
+  },
+  {
+    "query": "我想知道 PR comment 要怎麼用 gh CLI 回覆 inline review。",
+    "should_trigger": false
+  },
+  {
+    "query": "我有 stacked diffs，branch A 疊在 branch B 上，之後再疊到 main。這種 branch 管理怎麼做比較好？",
+    "should_trigger": false
+  }
+]
