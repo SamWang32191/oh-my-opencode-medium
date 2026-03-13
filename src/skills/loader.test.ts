@@ -108,7 +108,7 @@ describe('loadSkillsFromDirectories', () => {
     expect(skills['repo-map']?.template).toContain('Ignore @param tokens.');
   });
 
-  it('discovers skills nested deeper than one directory level', async () => {
+  it('uses colon-delimited relative paths for nested wrapped skills', async () => {
     const root = await mkdtemp(join(tmpdir(), 'skill-loader-'));
     tempDirs.push(root);
     const skillDir = join(root, 'bundle', 'repo-map');
@@ -122,8 +122,8 @@ describe('loadSkillsFromDirectories', () => {
       { path: root, source: 'agents' },
     ]);
 
-    expect(skills['repo-map']?.description).toBe('Deep skill');
-    expect(skills['repo-map']?.template).toContain('Deep prompt');
+    expect(skills['bundle:repo-map']?.description).toBe('Deep skill');
+    expect(skills['bundle:repo-map']?.template).toContain('Deep prompt');
   });
 
   it('loads a skill from a symlinked skill directory', async () => {
@@ -145,7 +145,7 @@ describe('loadSkillsFromDirectories', () => {
     expect(skills['planning-with-files']?.description).toBe('Planning skill');
   });
 
-  it('recurses into symlinked directories that contain nested skills', async () => {
+  it('keeps the relative path for nested skills under symlinked roots', async () => {
     const root = await mkdtemp(join(tmpdir(), 'skill-loader-'));
     const targetRoot = await mkdtemp(join(tmpdir(), 'skill-loader-target-'));
     tempDirs.push(root, targetRoot);
@@ -161,7 +161,25 @@ describe('loadSkillsFromDirectories', () => {
       { path: root, source: 'agents' },
     ]);
 
-    expect(skills.brainstorming?.description).toBe('Brainstorm');
+    expect(skills['superpowers:brainstorming']?.description).toBe('Brainstorm');
+  });
+
+  it('keeps the namespace for nested wrapped skills with frontmatter names', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'skill-loader-'));
+    tempDirs.push(root);
+    const skillDir = join(root, 'superpowers', 'brainstorming');
+    await mkdir(skillDir, { recursive: true });
+    await writeFile(
+      join(skillDir, 'SKILL.md'),
+      '---\nname: brainstorming\ndescription: Brainstorm\n---\nBrainstorm carefully\n',
+    );
+
+    const skills = await loadSkillsFromDirectories([
+      { path: root, source: 'agents' },
+    ]);
+
+    expect(skills['superpowers:brainstorming']?.description).toBe('Brainstorm');
+    expect(skills.brainstorming).toBeUndefined();
   });
 
   it('avoids repeated traversal through cyclic symlink directories', async () => {

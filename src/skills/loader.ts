@@ -81,6 +81,24 @@ function createSkillTemplate(
   return wrapSkillTemplate(body, dir);
 }
 
+function toWrappedCommandName(root: string, skillDir: string): string {
+  return relative(root, skillDir).split(/[/\\]/).join(':');
+}
+
+function resolveCommandName(
+  configuredName: string | undefined,
+  discoveredName: string,
+  isWrappedSkill: boolean,
+): string {
+  if (!configuredName) return discoveredName;
+  if (!isWrappedSkill) return configuredName;
+  if (!discoveredName.includes(':')) return configuredName;
+  if (configuredName.includes(':')) return configuredName;
+
+  const namespace = discoveredName.split(':').slice(0, -1).join(':');
+  return `${namespace}:${configuredName}`;
+}
+
 async function collectSkillFiles(
   root: string,
   source: SkillSource,
@@ -137,7 +155,7 @@ async function collectSkillFiles(
       if (existsSync(skillFilePath)) {
         files.push({
           filePath: skillFilePath,
-          commandName: entry.name,
+          commandName: toWrappedCommandName(root, entryPath),
           root,
           source,
         });
@@ -215,8 +233,12 @@ export async function loadSkillsFromDirectories(
         continue;
       }
 
-      const commandName = data.name ?? skillFile.commandName;
       const isWrappedSkill = basename(skillFile.filePath) === 'SKILL.md';
+      const commandName = resolveCommandName(
+        data.name,
+        skillFile.commandName,
+        isWrappedSkill,
+      );
       const skillDir = isWrappedSkill
         ? dirname(skillFile.filePath)
         : skillFile.root;
