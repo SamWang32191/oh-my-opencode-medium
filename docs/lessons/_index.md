@@ -4,6 +4,7 @@
 
 | Card | Scope | Tags | Date |
 |---|---|---|---|
+| `nested-skill-command-names-should-preserve-root-relative-path` | project | `skills`, `loader`, `commands`, `naming`, `symlink` | 2026-03-13 |
 | `skill-description-run-loop-may-need-manual-fallback` | project | `skills`, `description`, `evals`, `tooling` | 2026-03-12 |
 | `git-fetch-multiple-remotes-needs-separate-commands` | project | `git`, `remotes`, `commands`, `workflow` | 2026-03-12 |
 | `skill-evals-should-inline-skill-context-for-subagents` | project | `skills`, `evals`, `subagents`, `prompts` | 2026-03-12 |
