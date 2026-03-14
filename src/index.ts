@@ -27,7 +27,7 @@ import {
 import { startTmuxCheck } from './utils';
 import { log } from './utils/logger';
 
-const OhMyOpenCodeLite: Plugin = async (ctx) => {
+const OhMyOpenCode: Plugin = async (ctx) => {
   const config = loadPluginConfig(ctx.directory);
   const agentDefs = createAgents(config);
   const agents = getAgentConfigs(config);
@@ -94,7 +94,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
   const jsonErrorRecoveryHook = createJsonErrorRecoveryHook(ctx);
 
   return {
-    name: 'oh-my-opencode-slim',
+    name: 'oh-my-opencode-medium',
 
     agent: agents,
 
@@ -313,7 +313,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
   };
 };
 
-export default OhMyOpenCodeLite;
+export default OhMyOpenCode;
 
 export type {
   AgentName,
