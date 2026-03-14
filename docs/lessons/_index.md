@@ -4,6 +4,7 @@
 
 | Card | Scope | Tags | Date |
 |---|---|---|---|
+| `package-rename-must-cover-shipped-docs-tests-and-migration-paths` | project | `rename`, `packaging`, `docs`, `tests`, `migration` | 2026-03-14 |
 | `nested-skill-command-names-should-preserve-root-relative-path` | project | `skills`, `loader`, `commands`, `naming`, `symlink` | 2026-03-13 |
 | `skill-description-run-loop-may-need-manual-fallback` | project | `skills`, `description`, `evals`, `tooling` | 2026-03-12 |
 | `git-fetch-multiple-remotes-needs-separate-commands` | project | `git`, `remotes`, `commands`, `workflow` | 2026-03-12 |
