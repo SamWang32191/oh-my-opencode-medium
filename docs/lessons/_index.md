@@ -4,6 +4,7 @@
 
 | Card | Scope | Tags | Date |
 |---|---|---|---|
+| `github-actions-merge-base-needs-full-history` | project | `github-actions`, `git`, `releases`, `validation`, `history` | 2026-03-16 |
 | `git-tags-only-capture-committed-version-bumps` | project | `git`, `tags`, `releases`, `versioning`, `automation` | 2026-03-16 |
 | `package-rename-must-cover-shipped-docs-tests-and-migration-paths` | project | `rename`, `packaging`, `docs`, `tests`, `migration` | 2026-03-14 |
 | `nested-skill-command-names-should-preserve-root-relative-path` | project | `skills`, `loader`, `commands`, `naming`, `symlink` | 2026-03-13 |
