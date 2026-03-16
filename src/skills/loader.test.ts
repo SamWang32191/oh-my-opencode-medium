@@ -391,9 +391,19 @@ describe('discoverAllSkills', () => {
       '---\ndescription: bundled\n---\nBundled skill\n',
     );
 
-    const skills = await discoverAllSkills(projectDir, homeDir);
+    const previousXdgConfigHome = process.env.XDG_CONFIG_HOME;
+    delete process.env.XDG_CONFIG_HOME;
 
-    expect(skills.bundle?.description).toBe('bundled');
+    try {
+      const skills = await discoverAllSkills(projectDir, homeDir);
+      expect(skills.bundle?.description).toBe('bundled');
+    } finally {
+      if (previousXdgConfigHome === undefined) {
+        delete process.env.XDG_CONFIG_HOME;
+      } else {
+        process.env.XDG_CONFIG_HOME = previousXdgConfigHome;
+      }
+    }
   });
 
   it('reuses discovered skills for the same project and home directories', async () => {
@@ -408,17 +418,28 @@ describe('discoverAllSkills', () => {
       '---\ndescription: bundled\n---\nBundled skill\n',
     );
 
-    const firstSkills = await discoverAllSkills(projectDir, homeDir);
+    const previousXdgConfigHome = process.env.XDG_CONFIG_HOME;
+    delete process.env.XDG_CONFIG_HOME;
 
-    await writeFile(
-      join(skillPath, 'SKILL.md'),
-      '---\ndescription: changed\n---\nChanged skill\n',
-    );
+    try {
+      const firstSkills = await discoverAllSkills(projectDir, homeDir);
 
-    const secondSkills = await discoverAllSkills(projectDir, homeDir);
+      await writeFile(
+        join(skillPath, 'SKILL.md'),
+        '---\ndescription: changed\n---\nChanged skill\n',
+      );
 
-    expect(firstSkills.bundle?.description).toBe('bundled');
-    expect(secondSkills.bundle?.description).toBe('bundled');
+      const secondSkills = await discoverAllSkills(projectDir, homeDir);
+
+      expect(firstSkills.bundle?.description).toBe('bundled');
+      expect(secondSkills.bundle?.description).toBe('bundled');
+    } finally {
+      if (previousXdgConfigHome === undefined) {
+        delete process.env.XDG_CONFIG_HOME;
+      } else {
+        process.env.XDG_CONFIG_HOME = previousXdgConfigHome;
+      }
+    }
   });
 
   it('loads opencode skills from XDG_CONFIG_HOME when set', async () => {
