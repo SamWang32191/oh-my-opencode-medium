@@ -91,14 +91,34 @@ Example result:
 
 ```bash
 git push origin medium
-git push origin --tags
+git push origin vX.Y.Z-medium.N
 ```
 
-If you prefer to push only the new tag:
+> **Important:** Only push the tag when you are ready to publish. As soon as the tag
+> reaches GitHub, the `release.yml` workflow will automatically run and publish to npm.
+> npm rejects duplicate publishes for the same version—if the workflow fails and you
+> retry, you must use a new version number.
 
-```bash
-git push origin v0.8.3-medium.1
-```
+#### What happens after you push the tag
+
+1. GitHub Actions triggers the `release.yml` workflow
+2. The workflow validates:
+   - Tag format matches `vX.Y.Z-medium.N`
+   - Package version matches the tag
+   - Tagged commit is reachable from `origin/medium`
+3. It runs lint, typecheck, tests, and build
+4. It publishes to npm using **Trusted Publisher** (GitHub OIDC)—no `NPM_TOKEN` required
+
+#### Setting up npm Trusted Publisher (first-time only)
+
+If this is the first release for your fork, configure Trusted Publisher in npm:
+
+1. Go to your npm package page → **Settings** → **Publishing**
+2. Click **Add a Trusted Publisher**
+3. Select your GitHub repository and branch (`medium`)
+4. Set the workflow filename to `.github/workflows/release.yml`
+
+Once configured, future releases publish automatically when you push a `v*-medium.*` tag.
 
 ## Version Rules
 
