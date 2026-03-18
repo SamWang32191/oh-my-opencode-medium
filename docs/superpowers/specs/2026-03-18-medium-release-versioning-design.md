@@ -213,16 +213,20 @@ tags. Instead, it should:
 - update the release mapping document
 - create a release commit
 - create an annotated git tag
-- print the metadata needed for the GitHub Release body
+- print a copy-paste-ready GitHub Release body to stdout
 
-The release command may support either of these invocation models during
-implementation planning:
+The release command must use explicit version input as the primary interaction
+model:
 
-- explicit version input, such as `bun run release:medium --version 1.0.0`
-- bump mode, such as `bun run release:medium patch`
+- `bun run release:medium --version 1.0.0`
 
-Both are acceptable to plan from. The implementation plan should choose one
-default interaction model and keep the other only if it provides real value.
+This is preferred over bump shorthands because the fork now owns an independent
+semver line and the human releasing should decide whether the next version is a
+patch, minor, or major release.
+
+Bump shorthands such as `patch` or `minor` are out of scope for this redesign
+unless they fall out naturally from implementation with near-zero added
+complexity.
 
 ### Upstream Detection
 
@@ -305,6 +309,8 @@ Implementation planning should include tests for:
 - rejecting invalid requested versions
 - updating mapping content deterministically
 - keeping workflow validation aligned with the new tag format
+- printing a deterministic release body template for manual GitHub Release
+  creation
 
 ## Open Questions Resolved
 
