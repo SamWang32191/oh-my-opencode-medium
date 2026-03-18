@@ -128,9 +128,7 @@ and into release metadata that is explicit, searchable, and stable.
 ### Package Version
 
 - `package.json.version` must always be a stable semver in exact `X.Y.Z` form.
-- The first release under the new scheme should start a new fork-owned line,
-  with `1.0.0` as the default migration target unless a better transition point
-  emerges during implementation.
+- The first release under the new scheme is fixed as `1.0.0`.
 - Future fork-only fixes increment patch.
 - Feature releases increment minor.
 - Breaking release-process or user-facing compatibility changes increment major.
@@ -228,6 +226,15 @@ Bump shorthands such as `patch` or `minor` are out of scope for this redesign
 unless they fall out naturally from implementation with near-zero added
 complexity.
 
+The dry-run preview remains part of the operator workflow and should be exposed
+as:
+
+- `bun run release:medium:dry --version 1.0.0`
+
+The dry run must perform the same validation and metadata computation as the
+real release command, but it must not modify files, create commits, update the
+mapping document, or create tags.
+
 ### Upstream Detection
 
 The release flow should still work with upstream tags in exact `vX.Y.Z` form
@@ -257,7 +264,7 @@ output.
 The new strategy intentionally creates a visible boundary between the old
 prerelease-like naming scheme and the new stable fork-owned version line.
 
-Default migration target:
+Migration cutover:
 
 - current package: `0.8.3-medium.7`
 - first new-style package: `1.0.0`
