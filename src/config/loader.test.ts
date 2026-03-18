@@ -79,6 +79,21 @@ describe('loadPluginConfig', () => {
     expect(config.balanceProviderUsage).toBe(true);
   });
 
+  test('loads hashline_edit flag when configured', () => {
+    const projectDir = path.join(tempDir, 'project');
+    const projectConfigDir = path.join(projectDir, '.opencode');
+    fs.mkdirSync(projectConfigDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(projectConfigDir, 'oh-my-opencode-medium.json'),
+      JSON.stringify({
+        hashline_edit: true,
+      }),
+    );
+
+    const config = loadPluginConfig(projectDir);
+    expect(config.hashline_edit).toBe(true);
+  });
+
   test('loads manual plan structure when configured', () => {
     const projectDir = path.join(tempDir, 'project');
     const projectConfigDir = path.join(projectDir, '.opencode');

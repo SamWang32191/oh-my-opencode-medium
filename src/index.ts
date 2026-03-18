@@ -7,6 +7,8 @@ import {
   createAutoUpdateCheckerHook,
   createChatHeadersHook,
   createDelegateTaskRetryHook,
+  createHashlineEditDiffEnhancerHook,
+  createHashlineReadEnhancerHook,
   createJsonErrorRecoveryHook,
   createPhaseReminderHook,
   createPostReadNudgeHook,
@@ -18,6 +20,7 @@ import {
   ast_grep_replace,
   ast_grep_search,
   createBackgroundTools,
+  createHashlineEditTool,
   grep,
   lsp_diagnostics,
   lsp_find_references,
@@ -93,21 +96,43 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
   // Initialize JSON parse error recovery hook
   const jsonErrorRecoveryHook = createJsonErrorRecoveryHook(ctx);
 
+  // Initialize hashline edit diff enhancer hook (for write tool diff enhancement)
+  const hashlineEditDiffEnhancerHook = createHashlineEditDiffEnhancerHook({
+    hashline_edit: config.hashline_edit
+      ? { enabled: config.hashline_edit }
+      : undefined,
+  });
+
+  // Initialize hashline read enhancer hook (for read output transformation)
+  const hashlineReadEnhancerHook = createHashlineReadEnhancerHook(ctx, {
+    hashline_edit: config.hashline_edit
+      ? { enabled: config.hashline_edit }
+      : undefined,
+  });
+
+  // Build tool map - conditionally add edit tool when hashline_edit is enabled
+  const toolMap = {
+    ...backgroundTools,
+    lsp_goto_definition,
+    lsp_find_references,
+    lsp_diagnostics,
+    lsp_rename,
+    grep,
+    ast_grep_search,
+    ast_grep_replace,
+  };
+
+  // Conditionally register edit tool when hashline_edit is enabled
+  if (config.hashline_edit) {
+    (toolMap as Record<string, unknown>).edit = createHashlineEditTool();
+  }
+
   return {
     name: 'oh-my-opencode-medium',
 
     agent: agents,
 
-    tool: {
-      ...backgroundTools,
-      lsp_goto_definition,
-      lsp_find_references,
-      lsp_diagnostics,
-      lsp_rename,
-      grep,
-      ast_grep_search,
-      ast_grep_replace,
-    },
+    tool: toolMap,
 
     mcp: mcps,
 
@@ -317,8 +342,35 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
     'experimental.chat.messages.transform':
       phaseReminderHook['experimental.chat.messages.transform'],
 
-    // Post-tool hooks: retry guidance for delegation errors + post-read nudge
+    // Pre-tool hook: capture old content for write diff enhancement
+    'tool.execute.before': async (input, output) => {
+      await hashlineEditDiffEnhancerHook['tool.execute.before'](
+        input as { tool: string; sessionID: string; callID: string },
+        output as { args: Record<string, unknown> },
+      );
+    },
+
+    // Post-tool hooks: hashline diff/read enhancement + retry guidance + post-read nudge
+    // Order matters: hashline diff enhancer runs first (to attach diff metadata),
+    // then hashline read enhancer runs (to transform read output), then existing hooks
     'tool.execute.after': async (input, output) => {
+      // Run hashline diff enhancer first (attaches diff metadata to output)
+      await hashlineEditDiffEnhancerHook['tool.execute.after'](
+        input as { tool: string; sessionID: string; callID: string },
+        output as {
+          title: string;
+          output: string;
+          metadata: Record<string, unknown>;
+        },
+      );
+
+      // Run hashline read enhancer second (transforms read output with hashlines)
+      await hashlineReadEnhancerHook['tool.execute.after'](
+        input as { tool: string; sessionID: string; callID: string },
+        output as { title: string; output: unknown; metadata: unknown },
+      );
+
+      // Run existing hooks in their original order
       await delegateTaskRetryHook['tool.execute.after'](
         input as { tool: string },
         output as { output: unknown },
