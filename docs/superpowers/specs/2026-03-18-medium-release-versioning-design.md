@@ -146,6 +146,9 @@ and into release metadata that is explicit, searchable, and stable.
 - npm publish must target the default `latest` dist-tag.
 - The medium-specific `npm publish --tag medium` behavior must be removed.
 - The published version must match `package.json.version` exactly.
+- `.github/workflows/release.yml` must be updated to trigger on stable
+  `vX.Y.Z` tags and to publish the package without overriding the dist-tag to
+  `medium`.
 
 ## Provenance Mapping
 
@@ -204,7 +207,7 @@ tags. Instead, it should:
 - verify the working tree is clean
 - fetch upstream tags so provenance is available locally
 - determine or accept the next stable medium version
-- identify the latest stable upstream tag that the branch is based on
+- identify the exact upstream stable tag used for release provenance
 - capture the upstream tag and commit used for this release
 - update `package.json`
 - update the release mapping document
@@ -223,10 +226,23 @@ default interaction model and keep the other only if it provides real value.
 
 ### Upstream Detection
 
-The release flow should still compute the latest stable upstream tag in exact
-`vX.Y.Z` form and ignore upstream prerelease tags such as `v0.8.4-rc.1`.
+The release flow should still work with upstream tags in exact `vX.Y.Z` form
+and ignore upstream prerelease tags such as `v0.8.4-rc.1`.
 
-That upstream tag is no longer part of the package version. It is now release
+For provenance, the release flow must not use the newest upstream tag in the
+repository globally. It must use the newest stable upstream tag that is
+reachable from the release commit by git ancestry after fetching upstream tags.
+
+Operationally, this means:
+
+- collect stable upstream tags only
+- limit candidates to tags whose tagged commit is reachable from `HEAD`
+- choose the semver-highest candidate among those reachable tags
+
+This makes provenance deterministic and ties the recorded upstream version to
+what is actually contained in the release branch history.
+
+That upstream tag is no longer part of the package version. It is release
 metadata and must be persisted in the mapping document and surfaced in release
 output.
 
@@ -259,6 +275,9 @@ Existing old-format tags remain in git history. They should not be rewritten.
 New release automation only needs to recognize the new stable tag format for new
 releases.
 
+The GitHub Actions release workflow must also migrate from matching
+`v*-medium.*` to matching stable `vX.Y.Z` tags for new releases.
+
 If historical mapping entries are easy to infer, they can be added to
 `docs/release-mapping.md`, but full historical backfill is optional and should
 not block migration.
@@ -281,6 +300,7 @@ Implementation planning should include tests for:
 
 - parsing and validating stable release tags in `vX.Y.Z` form
 - identifying the latest stable upstream tag while ignoring prereleases
+- identifying the semver-highest stable upstream tag reachable from `HEAD`
 - building release metadata without encoding upstream into the version string
 - rejecting invalid requested versions
 - updating mapping content deterministically
