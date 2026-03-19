@@ -67,11 +67,6 @@ const generatedPaths = [
     'oh-my-opencode-medium',
     'Configuration schema for oh-my-opencode-medium plugin for OpenCode',
   ),
-  writeSchemaArtifact(
-    'oh-my-opencode-slim.schema.json',
-    'oh-my-opencode-slim',
-    'Configuration schema for oh-my-opencode-slim plugin for OpenCode',
-  ),
 ];
 
 formatSchemaArtifacts(generatedPaths);
