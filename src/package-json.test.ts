@@ -12,12 +12,14 @@ describe('package.json metadata', () => {
       'oh-my-opencode-medium': 'dist/cli/index.js',
     });
 
-    expect(packageJson.scripts?.['release:medium']).toBe(
+    expect(packageJson.scripts?.release).toBe(
       'bun run scripts/release-medium.ts',
     );
-    expect(packageJson.scripts?.['release:medium:dry']).toBe(
+    expect(packageJson.scripts?.['release:dry']).toBe(
       'bun run scripts/release-medium.ts --dry-run',
     );
+    expect(packageJson.scripts?.['release:medium']).toBeUndefined();
+    expect(packageJson.scripts?.['release:medium:dry']).toBeUndefined();
   });
 
   test('publishes the documented medium schema with hashline_edit', () => {
