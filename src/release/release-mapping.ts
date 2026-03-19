@@ -21,7 +21,7 @@ export const RELEASE_MAPPING_HEADER =
 
 const SEMVER_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 const RELEASE_SECTION_PATTERN =
-  /^## ([^\n]+)\n\n- Date: (\d{4}-\d{2}-\d{2})\n- Upstream Tag: ([^\n]+)\n- Upstream Commit: ([^\n]+)\n- Notes:\n  - ([^\n]+)\n?$/;
+  /^## ([^\n]+)\n\n- Date: (\d{4}-\d{2}-\d{2})\n- Upstream Tag: ([^\n]+)\n- Upstream Commit: ([^\n]+)\n- Notes:\n {2}- ([^\n]+)\n?$/;
 
 function compareSemverVersions(a: string, b: string) {
   const aParts = a.split('.').map(Number);

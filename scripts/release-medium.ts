@@ -8,8 +8,8 @@ import {
 } from '../src/release/medium-version';
 import {
   DEFAULT_RELEASE_NOTES,
-  RELEASE_MAPPING_HEADER,
   formatGithubReleaseBody,
+  RELEASE_MAPPING_HEADER,
   upsertReleaseMapping,
 } from '../src/release/release-mapping';
 

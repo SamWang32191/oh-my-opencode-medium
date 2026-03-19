@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test';
 import {
   DEFAULT_RELEASE_NOTES,
-  RELEASE_MAPPING_HEADER,
   formatGithubReleaseBody,
+  RELEASE_MAPPING_HEADER,
   upsertReleaseMapping,
 } from './release-mapping';
 

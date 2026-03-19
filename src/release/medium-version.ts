@@ -5,9 +5,7 @@ const STABLE_RELEASE_VERSION_PATTERN =
 
 export function validateRequestedReleaseVersion(version: string) {
   if (!STABLE_RELEASE_VERSION_PATTERN.test(version)) {
-    throw new Error(
-      'Release version must be stable semver in X.Y.Z form.',
-    );
+    throw new Error('Release version must be stable semver in X.Y.Z form.');
   }
 
   return version;
