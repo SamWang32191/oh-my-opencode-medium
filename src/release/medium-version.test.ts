@@ -16,6 +16,12 @@ describe('validateRequestedReleaseVersion', () => {
       'Release version must be stable semver in X.Y.Z form.',
     );
   });
+
+  test('rejects zero-padded versions', () => {
+    expect(() => validateRequestedReleaseVersion('01.2.3')).toThrow(
+      'Release version must be stable semver in X.Y.Z form.',
+    );
+  });
 });
 
 describe('parseStableReleaseTag', () => {
@@ -23,6 +29,10 @@ describe('parseStableReleaseTag', () => {
     expect(parseStableReleaseTag('v1.2.3')).toEqual({
       version: '1.2.3',
     });
+  });
+
+  test('returns null for non-matching tags', () => {
+    expect(parseStableReleaseTag('not-a-tag')).toBeNull();
   });
 });
 

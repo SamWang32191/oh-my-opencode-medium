@@ -1,5 +1,7 @@
-const STABLE_RELEASE_TAG_PATTERN = /^v(\d+\.\d+\.\d+)$/;
-const STABLE_RELEASE_VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
+const STABLE_RELEASE_TAG_PATTERN =
+  /^v((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*))$/;
+const STABLE_RELEASE_VERSION_PATTERN =
+  /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 
 export function validateRequestedReleaseVersion(version: string) {
   if (!STABLE_RELEASE_VERSION_PATTERN.test(version)) {
