@@ -106,6 +106,11 @@ https://raw.githubusercontent.com/SamWang32191/oh-my-opencode-medium/main/README
 - **[Provider Configurations](docs/provider-configurations.md)** - Config examples for all supported providers
 - **[Tmux Integration](docs/tmux-integration.md)** - Real-time agent monitoring with tmux
 
+Built-in command: use `/handoff` to generate a phase-1 continuation brief from
+the current conversation context plus git context when available. In this first
+iteration, it does not transfer session history or todo state (and it still
+works without git context).
+
 ---
 
 ## 🏛️ Meet the Pantheon

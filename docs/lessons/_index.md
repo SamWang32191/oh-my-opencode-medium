@@ -4,6 +4,7 @@
 
 | Card | Scope | Tags | Date |
 |---|---|---|---|
+| `prompt-command-tests-should-lock-required-structure` | project | `prompts`, `commands`, `tests`, `templates`, `review` | 2026-03-19 |
 | `machine-managed-file-seed-must-match-parser-canonical-format` | project | `release`, `parser`, `docs`, `automation`, `canonical-format` | 2026-03-19 |
 | `plugin-auto-update-must-install-in-opencode-cache` | project | `plugins`, `auto-update`, `cache`, `bun`, `restart` | 2026-03-18 |
 | `local-dev-plugin-detection-should-validate-package-json` | project | `local-dev`, `plugins`, `versioning`, `startup`, `file-url` | 2026-03-18 |

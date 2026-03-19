@@ -2,18 +2,11 @@ import { type Dirent, existsSync } from 'node:fs';
 import { readdir, readFile, realpath, stat } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { basename, dirname, join, relative } from 'node:path';
+import type { CommandDefinition } from '../commands/types';
 import { parseFrontmatter } from '../utils';
 import { log } from '../utils/logger';
 
 export type SkillSource = 'agents' | 'opencode';
-
-export interface CommandDefinition {
-  description?: string;
-  template: string;
-  model?: string;
-  agent?: string;
-  subtask?: boolean;
-}
 
 interface SkillFile {
   filePath: string;

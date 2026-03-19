@@ -159,6 +159,19 @@ ps aux | grep "opencode attach" | grep -v grep
 - Ensure graceful shutdown sends Ctrl+C before kill-pane
 - Check that tmux pane closes before process termination
 
+## Session Handoff
+
+Use this plugin's built-in `/handoff` command when you need to pass work to
+another session or agent:
+
+```bash
+/handoff
+```
+
+- Uses current conversation context plus git context when available
+- First iteration limitation: does not transfer session history or todo state
+- Degrades gracefully without git context and still creates a continuation brief
+
 ## Pre-Push Code Review
 
 Before pushing changes to the repository, always run a code review to catch issues like:
