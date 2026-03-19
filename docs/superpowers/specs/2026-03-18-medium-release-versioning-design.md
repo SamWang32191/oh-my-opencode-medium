@@ -164,8 +164,16 @@ Each release entry should record:
 - upstream commit SHA
 - optional notes for medium-specific highlights
 
-The document should be append-only in practice, with the newest release easiest
-to find.
+The document format must be deterministic:
+
+- one section per medium release version
+- versions ordered newest-first by medium semver
+- release date stored in ISO `YYYY-MM-DD` format
+- release date sourced from the day the release command is run
+- each medium version appears at most once
+
+The release command must either insert a new entry in the correct position or
+fail with an actionable error if the file cannot be updated safely.
 
 ### GitHub Release Notes
 
@@ -204,7 +212,7 @@ tags. Instead, it should:
 - verify the current branch is `medium`
 - verify the working tree is clean
 - fetch upstream tags so provenance is available locally
-- determine or accept the next stable medium version
+- require an explicit stable medium version from the operator
 - identify the exact upstream stable tag used for release provenance
 - capture the upstream tag and commit used for this release
 - update `package.json`
@@ -225,6 +233,9 @@ The release command must use explicit version input as the primary interaction
 model:
 
 - `bun run release -- --version 1.0.0`
+
+The `--version` argument is mandatory. If it is omitted, the command must fail
+with a usage error instead of guessing the next version.
 
 This is preferred over bump shorthands because the fork now owns an independent
 semver line and the human releasing should decide whether the next version is a
