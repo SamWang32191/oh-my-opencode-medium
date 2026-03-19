@@ -408,9 +408,11 @@ git commit -m "feat: add hashline diff enhancer"
 - [ ] **Step 1: Write the failing wiring tests**
 
 Add focused tests proving that:
-- `edit` is registered only when `hashline_edit` is enabled
-- `tool.execute.before` calls the diff enhancer before write execution when enabled
-- `tool.execute.after` runs the diff enhancer and read enhancer only when enabled
+- `edit` is registered by default unless `hashline_edit` is disabled
+- `tool.execute.before` always calls the diff enhancer before write execution,
+  with the enhancer no-oping when disabled
+- `tool.execute.after` always runs the diff enhancer and read enhancer, with
+  both enhancers no-oping when disabled
 - existing after hooks still run in the expected order
 
 - [ ] **Step 2: Run the targeted tests to verify they fail**
@@ -422,7 +424,7 @@ Expected: FAIL because `src/index.ts` is not wired yet.
 
 Update `src/index.ts` to:
 - initialize both new hooks
-- conditionally register `edit: createHashlineEditTool()` in the tool map
+- register `edit: createHashlineEditTool()` by default unless disabled in config
 - call the diff enhancer in `tool.execute.before`
 - call the diff enhancer before the read enhancer in `tool.execute.after`
 - preserve existing hook behavior after the new calls

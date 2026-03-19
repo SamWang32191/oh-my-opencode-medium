@@ -33,6 +33,9 @@ describe('package.json metadata', () => {
 
     expect(schema.properties?.hashline_edit).toEqual({
       type: 'boolean',
+      default: true,
+      description:
+        'Enable hash-anchored read/edit workflow. Enabled by default; set to false to disable.',
     });
   });
 });

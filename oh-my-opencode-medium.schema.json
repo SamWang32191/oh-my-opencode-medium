@@ -16,6 +16,8 @@
       "type": "boolean"
     },
     "hashline_edit": {
+      "default": true,
+      "description": "Enable hash-anchored read/edit workflow. Enabled by default; set to false to disable.",
       "type": "boolean"
     },
     "manualPlan": {

@@ -67,11 +67,11 @@ This enables autocomplete and inline validation in VS Code, Neovim, and other ed
 
 ### Hash-Anchored Editing
 
-Enable the hashline workflow in your project config:
+The hashline workflow is enabled by default. Add this to your project config only if you want to disable it:
 
 ```jsonc
 {
-  "hashline_edit": true
+  "hashline_edit": false
 }
 ```
 

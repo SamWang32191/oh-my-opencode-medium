@@ -4,7 +4,7 @@
 
 Add a Hash-Anchored Edit workflow to `oh-my-opencode-medium` that behaves as
 close as practical to `oh-my-opencode`, including `read` output enhancement,
-hash-validated `edit`, diff metadata enrichment, and opt-in config gating.
+hash-validated `edit`, diff metadata enrichment, and config-based disabling.
 
 ## Context
 
@@ -30,7 +30,7 @@ feature slice:
 - add a new `src/tools/hashline-edit/` module family modeled after the source
   repo
 - add `hashline_edit` to plugin config
-- register `edit` conditionally when the flag is enabled
+- register `edit` by default unless the flag is disabled
 - add `hashline-read-enhancer` and `hashline-edit-diff-enhancer` hooks with
   source-compatible behavior, adapted to medium's direct hook wiring in
   `src/index.ts`
@@ -78,7 +78,7 @@ Cons:
 
 - Add `hashline_edit?: boolean` to `PluginConfigSchema` in
   `src/config/schema.ts`.
-- Default behavior remains disabled when the field is omitted.
+- Default behavior remains enabled when the field is omitted.
 - When disabled:
   - no `edit` tool is registered
   - `read` output remains unchanged
@@ -86,7 +86,7 @@ Cons:
 
 ### Read Enhancement
 
-When `hashline_edit` is enabled, post-processing of `read` output should:
+When `hashline_edit` is enabled or omitted, post-processing of `read` output should:
 
 - transform numbered text output from `N: text` or `N| text` into
   `N#ID|text`
@@ -104,7 +104,8 @@ The hash format should match the source implementation:
 
 ### Edit Tool Interface
 
-Register an `edit` tool when `hashline_edit` is enabled with source-aligned
+Register an `edit` tool by default, unless `hashline_edit` is explicitly set to
+`false`, with source-aligned
 arguments:
 
 - `filePath: string`
@@ -246,12 +247,13 @@ and export them from `src/hooks/index.ts`.
 
 Update `src/index.ts` so that:
 
-- `edit` is registered only when `config.hashline_edit` is true
+- `edit` is registered by default unless `config.hashline_edit` is false
 - the new hooks are initialized once near the existing hook setup
-- `tool.execute.before` invokes the diff enhancer before write execution only
-  when `config.hashline_edit` is true
-- `tool.execute.after` invokes the read enhancer and diff enhancer alongside the
-  existing after hooks only when `config.hashline_edit` is true
+- `tool.execute.before` always invokes the diff enhancer before write execution,
+  with the enhancer becoming inert when `config.hashline_edit` is false
+- `tool.execute.after` always invokes the read enhancer and diff enhancer
+  alongside the existing after hooks, with both enhancers becoming inert when
+  `config.hashline_edit` is false
 
 This should be done without moving medium to a separate registry/composer
 framework.
@@ -285,7 +287,7 @@ behavior.
 ### Plugin Wiring Tests
 
 - `hashline_edit=false` leaves `edit` unregistered and hooks inert
-- `hashline_edit=true` registers `edit`
+- omitted `hashline_edit` or `hashline_edit=true` registers `edit`
 - after-hook chaining still preserves existing medium behaviors
 
 ## Error Handling
@@ -307,7 +309,8 @@ behavior.
 
 ## Expected User Workflow
 
-With `hashline_edit` enabled, the intended workflow is:
+With default settings, or whenever `hashline_edit` is not set to `false`, the
+intended workflow is:
 
 1. Run `read` on a target file.
 2. Copy exact `LINE#ID` anchors from the read output.
