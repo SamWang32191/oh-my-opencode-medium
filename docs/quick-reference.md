@@ -298,6 +298,14 @@ The plugin provides tools to manage asynchronous work:
 | `background_output` | Fetch the result of a background task by ID |
 | `background_cancel` | Abort running tasks |
 
+### Built-in Slash Commands
+
+This plugin adds a built-in `/handoff` slash command:
+
+| Command | Description |
+|---------|-------------|
+| `/handoff` | Creates a phase-1 continuation brief using current conversation context and git context when available; in this first iteration it does not transfer session history or todo state, and still generates a useful brief without git context. |
+
 ### LSP Tools
 
 Language Server Protocol integration for code intelligence:

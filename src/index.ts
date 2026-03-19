@@ -1,6 +1,9 @@
 import type { Plugin } from '@opencode-ai/plugin';
 import { createAgents, getAgentConfigs } from './agents';
 import { BackgroundTaskManager, TmuxSessionManager } from './background';
+import { createBuiltinCommands } from './commands/builtin';
+import { mergeCommands } from './commands/register';
+import type { CommandDefinition } from './commands/types';
 import { loadPluginConfig, type TmuxConfig } from './config';
 import { parseList } from './config/agent-mcps';
 import {
@@ -15,7 +18,6 @@ import {
 } from './hooks';
 import { createBuiltinMcps } from './mcp';
 import { discoverAllSkills } from './skills/loader';
-import { mergeSkillCommands } from './skills/register';
 import {
   ast_grep_replace,
   ast_grep_search,
@@ -138,6 +140,11 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
 
     config: async (opencodeConfig: Record<string, unknown>) => {
       const loadedSkills = await discoverAllSkills(ctx.directory);
+      const builtinCommands = createBuiltinCommands();
+      const existingCommands =
+        (opencodeConfig.command as
+          | Record<string, CommandDefinition>
+          | undefined) ?? {};
       // Only set default_agent if not already configured by the user
       // and the plugin config doesn't explicitly disable this behavior
       if (
@@ -148,7 +155,11 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
           'orchestrator';
       }
 
-      mergeSkillCommands(opencodeConfig, loadedSkills);
+      opencodeConfig.command = mergeCommands({
+        builtin: builtinCommands,
+        skills: loadedSkills,
+        existing: existingCommands,
+      });
 
       // Merge Agent configs — per-agent shallow merge to preserve
       // user-supplied fields (e.g. tools, permission) from opencode.json
