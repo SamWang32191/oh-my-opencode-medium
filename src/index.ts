@@ -100,19 +100,17 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
 
   // Initialize hashline edit diff enhancer hook (for write tool diff enhancement)
   const hashlineEditDiffEnhancerHook = createHashlineEditDiffEnhancerHook({
-    hashline_edit: config.hashline_edit
-      ? { enabled: config.hashline_edit }
-      : undefined,
+    hashline_edit:
+      config.hashline_edit === false ? { enabled: false } : { enabled: true },
   });
 
   // Initialize hashline read enhancer hook (for read output transformation)
   const hashlineReadEnhancerHook = createHashlineReadEnhancerHook(ctx, {
-    hashline_edit: config.hashline_edit
-      ? { enabled: config.hashline_edit }
-      : undefined,
+    hashline_edit:
+      config.hashline_edit === false ? { enabled: false } : { enabled: true },
   });
 
-  // Build tool map - conditionally add edit tool when hashline_edit is enabled
+  // Build tool map - edit tool is registered by default, unless explicitly disabled
   const toolMap = {
     ...backgroundTools,
     lsp_goto_definition,
@@ -124,8 +122,8 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
     ast_grep_replace,
   };
 
-  // Conditionally register edit tool when hashline_edit is enabled
-  if (config.hashline_edit) {
+  // Register edit tool unless explicitly disabled in config
+  if (config.hashline_edit !== false) {
     (toolMap as Record<string, unknown>).edit = createHashlineEditTool();
   }
 

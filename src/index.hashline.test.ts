@@ -91,6 +91,39 @@ describe('hashline wiring', () => {
     expect('edit' in plugin.tool).toBe(false);
   });
 
+  // NEW: Test default behavior - edit tool should be registered when hashline_edit is not set
+  test('registers edit by default when hashline_edit is not configured', async () => {
+    // Create a project config WITHOUT hashline_edit setting
+    const projectDir = path.join(tempDir, 'project-default');
+    const projectConfigDir = path.join(projectDir, '.opencode');
+    fs.mkdirSync(projectConfigDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(projectConfigDir, 'oh-my-opencode-medium.json'),
+      JSON.stringify({
+        // No hashline_edit setting - should default to enabled
+        tmux: { enabled: false },
+      }),
+    );
+
+    const module = await import('./index');
+    const { default: OhMyOpenCodeLite } = module;
+
+    const mockCtx = {
+      directory: projectDir,
+      client: {
+        provider: {
+          list: vi.fn().mockResolvedValue([]),
+        },
+      },
+    };
+
+    const plugin = await OhMyOpenCodeLite(mockCtx as never);
+
+    // When hashline_edit is not configured, the edit tool should be registered by default
+    expect(plugin.tool).toBeDefined();
+    expect('edit' in plugin.tool).toBe(true);
+  });
+
   // Test 2: tool.execute.before captures old content when enabled
   test('tool.execute.before captures old content when hashline_edit enabled', async () => {
     // Create config with hashline_edit enabled

@@ -1,73 +1,88 @@
 import { describe, expect, test } from 'bun:test';
 import {
+  assertReleaseVersionIsMonotonic,
   buildMediumReleasePlan,
-  getLatestStableUpstreamVersion,
-  getNextMediumRelease,
-  getReleaseCommitMessage,
-  parseMediumTag,
+  getLatestReachableStableUpstreamVersion,
+  parseStableReleaseTag,
+  validateRequestedReleaseVersion,
 } from './medium-version';
 
-describe('parseMediumTag', () => {
-  test('parses a matching medium release tag', () => {
-    expect(parseMediumTag('v0.8.3-medium.2')).toEqual({
-      upstreamVersion: '0.8.3',
-      forkPatch: 2,
-    });
+describe('validateRequestedReleaseVersion', () => {
+  test('returns a stable semver version unchanged', () => {
+    expect(validateRequestedReleaseVersion('1.0.0')).toBe('1.0.0');
+  });
+
+  test('rejects prerelease versions', () => {
+    expect(() => validateRequestedReleaseVersion('1.0.0-rc.1')).toThrow(
+      'Release version must be stable semver in X.Y.Z form.',
+    );
+  });
+
+  test('rejects zero-padded versions', () => {
+    expect(() => validateRequestedReleaseVersion('01.2.3')).toThrow(
+      'Release version must be stable semver in X.Y.Z form.',
+    );
   });
 });
 
-test('selects the latest stable upstream version by semver', () => {
+describe('parseStableReleaseTag', () => {
+  test('parses an exact stable release tag', () => {
+    expect(parseStableReleaseTag('v1.2.3')).toEqual({
+      version: '1.2.3',
+    });
+  });
+
+  test('returns null for non-matching tags', () => {
+    expect(parseStableReleaseTag('not-a-tag')).toBeNull();
+  });
+});
+
+test('selects the latest reachable stable upstream version by semver', () => {
   expect(
-    getLatestStableUpstreamVersion([
+    getLatestReachableStableUpstreamVersion([
       'v0.8.9',
       'v0.10.0',
       'v0.10.0-rc.1',
-      'v1.2',
-      'not-a-tag',
+      'v1.0',
     ]),
   ).toBe('0.10.0');
 });
 
-test('increments the highest matching medium release', () => {
-  expect(
-    getNextMediumRelease('0.8.3', ['v0.8.2-medium.7', 'v0.8.3-medium.2']),
-  ).toEqual({
-    packageVersion: '0.8.3-medium.3',
-    gitTag: 'v0.8.3-medium.3',
-  });
-});
-
-test('starts at medium.1 when no matching fork tag exists', () => {
-  expect(getNextMediumRelease('0.8.4', ['v0.8.3-medium.2'])).toEqual({
-    packageVersion: '0.8.4-medium.1',
-    gitTag: 'v0.8.4-medium.1',
-  });
-});
-
-test('builds the next release plan from upstream and existing tags', () => {
+test('builds the stable release plan from requested and reachable tags', () => {
   expect(
     buildMediumReleasePlan({
-      upstreamTags: ['v0.8.3', 'v0.8.2'],
-      existingTags: ['v0.8.3-medium.2'],
+      requestedVersion: '1.0.0',
+      reachableUpstreamTags: ['v0.8.2', 'v0.8.3'],
     }),
   ).toEqual({
+    packageVersion: '1.0.0',
+    gitTag: 'v1.0.0',
     upstreamTag: 'v0.8.3',
-    packageVersion: '0.8.3-medium.3',
-    gitTag: 'v0.8.3-medium.3',
+    releaseCommitMessage: 'chore: release 1.0.0',
   });
 });
 
-test('throws when no stable upstream tag exists', () => {
+test('rejects a requested version that is not newer than the highest mapped release', () => {
+  expect(() => assertReleaseVersionIsMonotonic('1.0.2', '1.0.2')).toThrow(
+    'Release version 1.0.2 must be greater than the highest mapped release version 1.0.2.',
+  );
+
   expect(() =>
     buildMediumReleasePlan({
-      upstreamTags: ['v0.8.3-rc.1', 'not-a-tag'],
-      existingTags: [],
+      requestedVersion: '1.0.1',
+      reachableUpstreamTags: ['v0.8.2', 'v0.8.3'],
+      highestMappedVersion: '1.0.2',
     }),
-  ).toThrow('No stable upstream tag found.');
+  ).toThrow(
+    'Release version 1.0.1 must be greater than the highest mapped release version 1.0.2.',
+  );
 });
 
-test('formats the release commit message', () => {
-  expect(getReleaseCommitMessage('0.8.3-medium.3')).toBe(
-    'chore: release 0.8.3-medium.3',
-  );
+test('throws when no reachable stable upstream tags exist', () => {
+  expect(() =>
+    buildMediumReleasePlan({
+      requestedVersion: '1.0.0',
+      reachableUpstreamTags: ['v0.8.3-rc.1', 'not-a-tag'],
+    }),
+  ).toThrow('No stable upstream tag reachable from HEAD.');
 });

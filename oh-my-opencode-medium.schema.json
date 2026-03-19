@@ -15,6 +15,9 @@
     "balanceProviderUsage": {
       "type": "boolean"
     },
+    "hashline_edit": {
+      "type": "boolean"
+    },
     "manualPlan": {
       "type": "object",
       "properties": {
@@ -405,6 +408,6 @@
       }
     }
   },
-  "title": "oh-my-opencode-slim",
-  "description": "Configuration schema for oh-my-opencode-slim plugin for OpenCode"
+  "title": "oh-my-opencode-medium",
+  "description": "Configuration schema for oh-my-opencode-medium plugin for OpenCode"
 }

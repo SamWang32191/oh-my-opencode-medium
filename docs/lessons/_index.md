@@ -5,11 +5,14 @@
 | Card | Scope | Tags | Date |
 |---|---|---|---|
 | `prompt-command-tests-should-lock-required-structure` | project | `prompts`, `commands`, `tests`, `templates`, `review` | 2026-03-19 |
+| `machine-managed-file-seed-must-match-parser-canonical-format` | project | `release`, `parser`, `docs`, `automation`, `canonical-format` | 2026-03-19 |
+| `plugin-auto-update-must-install-in-opencode-cache` | project | `plugins`, `auto-update`, `cache`, `bun`, `restart` | 2026-03-18 |
+| `local-dev-plugin-detection-should-validate-package-json` | project | `local-dev`, `plugins`, `versioning`, `startup`, `file-url` | 2026-03-18 |
 | `full-suite-hashline-tests-should-avoid-mocked-node-fs-assertions` | project | `tests`, `bun`, `mocks`, `hashline`, `isolation` | 2026-03-18 |
+| `package-rename-must-cover-shipped-docs-tests-and-migration-paths` | project | `rename`, `packaging`, `docs`, `schema`, `tests`, `migration` | 2026-03-18 |
 | `npm-trusted-publisher-publish-needs-provenance` | project | `npm`, `trusted-publisher`, `github-actions`, `oidc`, `releases` | 2026-03-16 |
 | `github-actions-merge-base-needs-full-history` | project | `github-actions`, `git`, `releases`, `validation`, `history` | 2026-03-16 |
 | `git-tags-only-capture-committed-version-bumps` | project | `git`, `tags`, `releases`, `versioning`, `automation` | 2026-03-16 |
-| `package-rename-must-cover-shipped-docs-tests-and-migration-paths` | project | `rename`, `packaging`, `docs`, `tests`, `migration` | 2026-03-14 |
 | `nested-skill-command-names-should-preserve-root-relative-path` | project | `skills`, `loader`, `commands`, `naming`, `symlink` | 2026-03-13 |
 | `skill-description-run-loop-may-need-manual-fallback` | project | `skills`, `description`, `evals`, `tooling` | 2026-03-12 |
 | `git-fetch-multiple-remotes-needs-separate-commands` | project | `git`, `remotes`, `commands`, `workflow` | 2026-03-12 |
