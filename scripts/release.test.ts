@@ -1,10 +1,11 @@
 import { describe, expect, test } from 'bun:test';
 import {
+  buildGithubReleaseCommand,
   deriveReachableUpstreamTags,
   normalizeRemoteTagRefs,
   parseReleaseArgs,
   shouldFetchUpstreamTags,
-} from './release-medium';
+} from './release';
 
 describe('parseReleaseArgs', () => {
   test('requires an explicit stable version and accepts dry-run with notes', () => {
@@ -72,5 +73,26 @@ describe('shouldFetchUpstreamTags', () => {
 
   test('fetches before a real release', () => {
     expect(shouldFetchUpstreamTags(false)).toBe(true);
+  });
+});
+
+describe('buildGithubReleaseCommand', () => {
+  test('targets the fixed fork repo and release title', () => {
+    expect(
+      buildGithubReleaseCommand({
+        gitTag: 'v1.2.3',
+        notesFile: '/tmp/release-notes.md',
+      }),
+    ).toEqual([
+      'release',
+      'create',
+      'v1.2.3',
+      '--repo',
+      'SamWang32191/oh-my-opencode-medium',
+      '--title',
+      'v1.2.3',
+      '--notes-file',
+      '/tmp/release-notes.md',
+    ]);
   });
 });

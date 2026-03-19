@@ -1,7 +1,9 @@
 #!/usr/bin/env bun
 
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import {
   buildMediumReleasePlan,
   validateRequestedReleaseVersion,
@@ -33,8 +35,10 @@ type ReleasePlanDetails = ReturnType<typeof buildMediumReleasePlan> & {
   releaseBody: string;
 };
 
-function runGitCommand(args: string[], errorMessage: string) {
-  const result = spawnSync('git', args, {
+const GITHUB_RELEASE_REPO = 'SamWang32191/oh-my-opencode-medium';
+
+function runCommand(command: string, args: string[], errorMessage: string) {
+  const result = spawnSync(command, args, {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -45,6 +49,10 @@ function runGitCommand(args: string[], errorMessage: string) {
   }
 
   return result.stdout.trim();
+}
+
+function runGitCommand(args: string[], errorMessage: string) {
+  return runCommand('git', args, errorMessage);
 }
 
 export function parseReleaseArgs(args: string[]): ReleaseArgs {
@@ -129,6 +137,26 @@ export function deriveReachableUpstreamTags(
 export function shouldFetchUpstreamTags(dryRun: boolean) {
   void dryRun;
   return true;
+}
+
+export function buildGithubReleaseCommand({
+  gitTag,
+  notesFile,
+}: {
+  gitTag: string;
+  notesFile: string;
+}) {
+  return [
+    'release',
+    'create',
+    gitTag,
+    '--repo',
+    GITHUB_RELEASE_REPO,
+    '--title',
+    gitTag,
+    '--notes-file',
+    notesFile,
+  ];
 }
 
 function ensureUpstreamRemoteExists() {
@@ -216,6 +244,42 @@ function createAnnotatedTag(tagName: string) {
     ['tag', '-a', tagName, '-m', `medium release ${tagName}`],
     `Failed to create annotated tag ${tagName}.`,
   );
+}
+
+function pushReleaseBranch() {
+  runGitCommand(
+    ['push', 'origin', 'medium'],
+    'Failed to push medium branch to origin.',
+  );
+}
+
+function pushReleaseTag(tagName: string) {
+  runGitCommand(
+    ['push', 'origin', tagName],
+    `Failed to push tag ${tagName} to origin.`,
+  );
+}
+
+function createGithubRelease(plan: ReleasePlanDetails) {
+  const notesFile = join(
+    tmpdir(),
+    `oh-my-opencode-medium-release-${plan.gitTag}-${Date.now()}.md`,
+  );
+
+  writeFileSync(notesFile, `${plan.releaseBody}\n`);
+
+  try {
+    runCommand(
+      'gh',
+      buildGithubReleaseCommand({
+        gitTag: plan.gitTag,
+        notesFile,
+      }),
+      `Failed to create GitHub release ${plan.gitTag}.`,
+    );
+  } finally {
+    rmSync(notesFile, { force: true });
+  }
 }
 
 function readPackageJson() {
@@ -317,6 +381,7 @@ function printDryRun(plan: ReleasePlanDetails) {
   console.log(`Git tag: ${plan.gitTag}`);
   console.log(`Upstream tag: ${plan.upstreamTag}`);
   console.log(`Upstream commit: ${plan.upstreamCommit}`);
+  console.log(`GitHub release repo: ${GITHUB_RELEASE_REPO}`);
   console.log('');
   console.log('GitHub Release body:');
   console.log(plan.releaseBody);
@@ -357,10 +422,16 @@ function runRelease(args: ReleaseArgs) {
   stageReleaseFiles();
   commitRelease(plan.packageVersion);
   createAnnotatedTag(plan.gitTag);
+  pushReleaseBranch();
+  pushReleaseTag(plan.gitTag);
+  createGithubRelease(plan);
 
   console.log(`Updated package.json to ${plan.packageVersion}`);
   console.log(`Updated docs/release-mapping.md`);
   console.log(`Created tag ${plan.gitTag}`);
+  console.log(`Pushed medium to origin`);
+  console.log(`Pushed tag ${plan.gitTag} to origin`);
+  console.log(`Created GitHub release ${plan.gitTag}`);
 }
 
 try {

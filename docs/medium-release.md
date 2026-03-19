@@ -23,7 +23,7 @@ git status
 ### 2. Preview the release
 
 ```bash
-bun run release:dry -- --version X.Y.Z
+bun run release -- --dry-run --version X.Y.Z
 ```
 
 The dry run prints:
@@ -50,9 +50,12 @@ The real release:
 2. updates `docs/release-mapping.md`
 3. creates the release commit
 4. creates the `vX.Y.Z` git tag
+5. pushes `medium` to `origin`
+6. pushes `vX.Y.Z` to `origin`
+7. creates a GitHub Release in `SamWang32191/oh-my-opencode-medium`
 
 The mapping doc is the source of record for upstream provenance. The GitHub
-Release in the web UI should paste the generated body, including:
+Release is created automatically with the generated body, including:
 
 ```text
 Based on upstream <tag> (<sha>)
@@ -62,16 +65,13 @@ Based on upstream <tag> (<sha>)
 edits so the release history stays consistent with the generated provenance
 mapping.
 
-### 4. Push the release
-
-```bash
-git push origin medium
-git push origin vX.Y.Z
-```
+### 4. After the command finishes
 
 After the tag reaches GitHub, `.github/workflows/release.yml` validates the
 tag, checks the package version, confirms the tagged commit is reachable from
-`origin/medium`, runs the build/test pipeline, and publishes to npm.
+`origin/medium`, runs the build/test pipeline, and publishes to npm. The same
+command also creates the GitHub Release directly through `gh release create
+--repo SamWang32191/oh-my-opencode-medium`.
 
 ## npm Publishing
 
@@ -127,5 +127,5 @@ That stable release version was already used. Choose a new `--version` and rerun
 the dry run:
 
 ```bash
-bun run release:dry -- --version X.Y.Z
+bun run release -- --dry-run --version X.Y.Z
 ```
