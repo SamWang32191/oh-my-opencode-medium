@@ -144,6 +144,10 @@ export function upsertReleaseMapping(
   currentContent: string,
   entry: ReleaseMappingEntry,
 ) {
+  if (!isSemver(entry.mediumVersion)) {
+    throw new Error('Release mapping file is malformed.');
+  }
+
   const existingEntries = parseReleaseMappingContent(currentContent);
 
   if (

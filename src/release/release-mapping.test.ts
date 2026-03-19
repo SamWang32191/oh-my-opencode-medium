@@ -36,6 +36,22 @@ const CURRENT_CONTENT_WITH_EXTRA_FINAL_BLANK_LINE =
   '- Notes:\n' +
   '  - Initial stable release\n\n';
 
+const CURRENT_MULTI_ENTRY_CONTENT =
+  '# Release Mapping\n\n' +
+  '> Maps medium releases to upstream tags and commits.\n\n' +
+  '## 1.0.2\n\n' +
+  '- Date: 2026-03-18\n' +
+  '- Upstream Tag: v0.8.2\n' +
+  '- Upstream Commit: bbb2222\n' +
+  '- Notes:\n' +
+  '  - Middle release\n\n' +
+  '## 1.0.0\n\n' +
+  '- Date: 2026-03-17\n' +
+  '- Upstream Tag: v0.8.1\n' +
+  '- Upstream Commit: aaa1111\n' +
+  '- Notes:\n' +
+  '  - Older release\n';
+
 describe('RELEASE_MAPPING_HEADER', () => {
   test('matches the canonical release mapping header', () => {
     expect(RELEASE_MAPPING_HEADER).toBe(
@@ -100,6 +116,41 @@ describe('upsertReleaseMapping', () => {
         upstreamCommit: 'def5678',
       }),
     ).toThrow('Release mapping file is malformed.');
+  });
+
+  test('rejects malformed incoming medium versions', () => {
+    expect(() =>
+      upsertReleaseMapping(CURRENT_CONTENT, {
+        mediumVersion: '1.0.0-beta.1',
+        releaseDate: '2026-03-20',
+        upstreamTag: 'v0.8.4',
+        upstreamCommit: 'def5678',
+      }),
+    ).toThrow('Release mapping file is malformed.');
+
+    expect(() =>
+      upsertReleaseMapping(CURRENT_CONTENT, {
+        mediumVersion: ' 1.0.1 ',
+        releaseDate: '2026-03-20',
+        upstreamTag: 'v0.8.4',
+        upstreamCommit: 'def5678',
+      }),
+    ).toThrow('Release mapping file is malformed.');
+  });
+
+  test('orders non-trivial semver versions newest-first', () => {
+    const result = upsertReleaseMapping(CURRENT_MULTI_ENTRY_CONTENT, {
+      mediumVersion: '1.0.10',
+      releaseDate: '2026-03-20',
+      upstreamTag: 'v0.8.4',
+      upstreamCommit: 'def5678',
+      notes: 'Newest release',
+    });
+
+    expect(result.indexOf('## 1.0.10')).toBeLessThan(
+      result.indexOf('## 1.0.2'),
+    );
+    expect(result.indexOf('## 1.0.2')).toBeLessThan(result.indexOf('## 1.0.0'));
   });
 });
 
