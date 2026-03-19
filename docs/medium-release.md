@@ -97,7 +97,7 @@ up yet. Point it at `.github/workflows/release.yml` for this repository.
 
 ## Troubleshooting
 
-### `Working tree must be clean before releasing.`
+### `Working tree must be clean before releasing medium.`
 
 Commit or stash your local changes first, then rerun:
 
