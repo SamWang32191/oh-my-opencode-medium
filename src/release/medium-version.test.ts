@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import {
+  assertReleaseVersionIsMonotonic,
   buildMediumReleasePlan,
   getLatestReachableStableUpstreamVersion,
   parseStableReleaseTag,
@@ -59,6 +60,22 @@ test('builds the stable release plan from requested and reachable tags', () => {
     upstreamTag: 'v0.8.3',
     releaseCommitMessage: 'chore: release 1.0.0',
   });
+});
+
+test('rejects a requested version that is not newer than the highest mapped release', () => {
+  expect(() => assertReleaseVersionIsMonotonic('1.0.2', '1.0.2')).toThrow(
+    'Release version 1.0.2 must be greater than the highest mapped release version 1.0.2.',
+  );
+
+  expect(() =>
+    buildMediumReleasePlan({
+      requestedVersion: '1.0.1',
+      reachableUpstreamTags: ['v0.8.2', 'v0.8.3'],
+      highestMappedVersion: '1.0.2',
+    }),
+  ).toThrow(
+    'Release version 1.0.1 must be greater than the highest mapped release version 1.0.2.',
+  );
 });
 
 test('throws when no reachable stable upstream tags exist', () => {

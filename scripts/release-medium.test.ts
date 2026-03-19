@@ -28,6 +28,12 @@ describe('parseReleaseArgs', () => {
       'Missing required --version X.Y.Z argument.',
     );
   });
+
+  test('rejects multiline notes', () => {
+    expect(() =>
+      parseReleaseArgs(['--version', '1.2.3', '--notes', 'line 1\nline 2']),
+    ).toThrow('Release notes must be a single line.');
+  });
 });
 
 describe('normalizeRemoteTagRefs', () => {
@@ -60,8 +66,8 @@ describe('deriveReachableUpstreamTags', () => {
 });
 
 describe('shouldFetchUpstreamTags', () => {
-  test('skips fetch in dry-run mode', () => {
-    expect(shouldFetchUpstreamTags(true)).toBe(false);
+  test('fetches in dry-run mode so previews use fresh upstream tags', () => {
+    expect(shouldFetchUpstreamTags(true)).toBe(true);
   });
 
   test('fetches before a real release', () => {

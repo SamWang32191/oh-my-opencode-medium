@@ -34,7 +34,9 @@ The dry run prints:
 - upstream commit
 - GitHub Release body
 
-The preview does not modify files, create commits, or create tags.
+The preview refreshes upstream tags first so it resolves against the same
+upstream tag state as a real release. It still does not modify files, create
+commits, update `docs/release-mapping.md`, or create tags.
 
 ### 3. Create the release
 
@@ -55,6 +57,10 @@ Release in the web UI should paste the generated body, including:
 ```text
 Based on upstream <tag> (<sha>)
 ```
+
+`docs/release-mapping.md` is machine-managed by the release script. Avoid manual
+edits so the release history stays consistent with the generated provenance
+mapping.
 
 ### 4. Push the release
 
@@ -83,8 +89,11 @@ up yet. Point it at `.github/workflows/release.yml` for this repository.
 - versions are stable semver owned by this fork, such as `1.2.3`
 - release tags are exact `v1.2.3`
 - versions do not use the old `<upstream>-medium.N` pattern
+- an explicit `--version` must be greater than the highest release already
+  recorded in `docs/release-mapping.md`
 - only stable upstream tags in exact `vX.Y.Z` form are used as inputs for the
   release mapping and release body
+- `--notes` must stay single-line so the mapping file remains round-trippable
 
 ## Troubleshooting
 

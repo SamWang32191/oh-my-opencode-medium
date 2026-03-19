@@ -36,6 +36,24 @@ function compareSemverVersions(a: string, b: string) {
   return 0;
 }
 
+export function assertReleaseVersionIsMonotonic(
+  requestedVersion: string,
+  highestMappedVersion: string | null,
+) {
+  const stableVersion = validateRequestedReleaseVersion(requestedVersion);
+
+  if (
+    highestMappedVersion !== null &&
+    compareSemverVersions(stableVersion, highestMappedVersion) <= 0
+  ) {
+    throw new Error(
+      `Release version ${stableVersion} must be greater than the highest mapped release version ${highestMappedVersion}.`,
+    );
+  }
+
+  return stableVersion;
+}
+
 export function getLatestReachableStableUpstreamVersion(tags: string[]) {
   const versions = tags
     .map(parseStableReleaseTag)
@@ -49,11 +67,16 @@ export function getLatestReachableStableUpstreamVersion(tags: string[]) {
 export function buildMediumReleasePlan({
   requestedVersion,
   reachableUpstreamTags,
+  highestMappedVersion = null,
 }: {
   requestedVersion: string;
   reachableUpstreamTags: string[];
+  highestMappedVersion?: string | null;
 }) {
-  const packageVersion = validateRequestedReleaseVersion(requestedVersion);
+  const packageVersion = assertReleaseVersionIsMonotonic(
+    requestedVersion,
+    highestMappedVersion,
+  );
   const upstreamVersion = getLatestReachableStableUpstreamVersion(
     reachableUpstreamTags,
   );

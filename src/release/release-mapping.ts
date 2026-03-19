@@ -40,6 +40,14 @@ function isSemver(version: string) {
   return SEMVER_PATTERN.test(version);
 }
 
+export function assertSingleLineReleaseNotes(notes: string) {
+  if (/[\r\n]/.test(notes)) {
+    throw new Error('Release notes must be a single line.');
+  }
+
+  return notes;
+}
+
 function parseReleaseMappingContent(currentContent: string) {
   if (!currentContent.startsWith(RELEASE_MAPPING_HEADER)) {
     throw new Error('Release mapping file is malformed.');
@@ -160,7 +168,9 @@ export function upsertReleaseMapping(
     );
   }
 
-  const notes = entry.notes ?? DEFAULT_RELEASE_NOTES;
+  const notes = assertSingleLineReleaseNotes(
+    entry.notes ?? DEFAULT_RELEASE_NOTES,
+  );
   const nextEntries = [
     ...existingEntries,
     {
@@ -179,6 +189,22 @@ export function upsertReleaseMapping(
     nextEntries.map(formatReleaseMappingSection).join('\n\n') +
     '\n'
   );
+}
+
+export function getHighestMappedReleaseVersion(currentContent: string) {
+  const existingEntries = parseReleaseMappingContent(currentContent);
+
+  if (existingEntries.length === 0) {
+    return null;
+  }
+
+  return existingEntries.reduce((highestVersion, entry) => {
+    if (compareSemverVersions(entry.mediumVersion, highestVersion) > 0) {
+      return entry.mediumVersion;
+    }
+
+    return highestVersion;
+  }, existingEntries[0].mediumVersion);
 }
 
 export function formatGithubReleaseBody({

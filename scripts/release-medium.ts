@@ -7,8 +7,10 @@ import {
   validateRequestedReleaseVersion,
 } from '../src/release/medium-version';
 import {
+  assertSingleLineReleaseNotes,
   DEFAULT_RELEASE_NOTES,
   formatGithubReleaseBody,
+  getHighestMappedReleaseVersion,
   RELEASE_MAPPING_HEADER,
   upsertReleaseMapping,
 } from '../src/release/release-mapping';
@@ -77,7 +79,7 @@ export function parseReleaseArgs(args: string[]): ReleaseArgs {
         throw new Error('Missing value for --notes.');
       }
 
-      notes = value;
+      notes = assertSingleLineReleaseNotes(value);
       index += 1;
       continue;
     }
@@ -125,7 +127,8 @@ export function deriveReachableUpstreamTags(
 }
 
 export function shouldFetchUpstreamTags(dryRun: boolean) {
-  return !dryRun;
+  void dryRun;
+  return true;
 }
 
 function ensureUpstreamRemoteExists() {
@@ -275,7 +278,10 @@ function commitRelease(version: string) {
   );
 }
 
-function buildReleasePlanDetails(args: ReleaseArgs): ReleasePlanDetails {
+function buildReleasePlanDetails(
+  args: ReleaseArgs,
+  highestMappedVersion: string | null,
+): ReleasePlanDetails {
   const normalizedUpstreamTags = getNormalizedUpstreamTags();
   const reachableTags = getReachableTags();
   const reachableUpstreamTags = deriveReachableUpstreamTags(
@@ -285,6 +291,7 @@ function buildReleasePlanDetails(args: ReleaseArgs): ReleasePlanDetails {
   const releasePlan = buildMediumReleasePlan({
     requestedVersion: args.requestedVersion,
     reachableUpstreamTags,
+    highestMappedVersion,
   });
   const upstreamCommit = getCommitForTag(releasePlan.upstreamTag);
   const releaseDate = new Date().toISOString().slice(0, 10);
@@ -324,7 +331,11 @@ function runRelease(args: ReleaseArgs) {
     fetchUpstreamTags();
   }
 
-  const plan = buildReleasePlanDetails(args);
+  const currentMappingContent = readReleaseMappingContent();
+  const highestMappedVersion = getHighestMappedReleaseVersion(
+    currentMappingContent,
+  );
+  const plan = buildReleasePlanDetails(args, highestMappedVersion);
   ensureTagDoesNotExist(plan.gitTag);
 
   if (args.dryRun) {
@@ -334,7 +345,6 @@ function runRelease(args: ReleaseArgs) {
 
   writePackageVersion(plan.packageVersion);
 
-  const currentMappingContent = readReleaseMappingContent();
   const nextMappingContent = upsertReleaseMapping(currentMappingContent, {
     mediumVersion: plan.packageVersion,
     releaseDate: plan.releaseDate,

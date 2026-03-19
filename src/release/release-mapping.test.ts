@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import {
   DEFAULT_RELEASE_NOTES,
   formatGithubReleaseBody,
+  getHighestMappedReleaseVersion,
   RELEASE_MAPPING_HEADER,
   upsertReleaseMapping,
 } from './release-mapping';
@@ -62,6 +63,26 @@ describe('RELEASE_MAPPING_HEADER', () => {
 });
 
 describe('upsertReleaseMapping', () => {
+  test('accepts the canonical checked-in stub with only the header', () => {
+    expect(
+      upsertReleaseMapping(RELEASE_MAPPING_HEADER, {
+        mediumVersion: '1.0.0',
+        releaseDate: '2026-03-19',
+        upstreamTag: 'v0.8.3',
+        upstreamCommit: 'abc1234',
+      }),
+    ).toBe(
+      '# Release Mapping\n\n' +
+        '> Maps medium releases to upstream tags and commits.\n\n' +
+        '## 1.0.0\n\n' +
+        '- Date: 2026-03-19\n' +
+        '- Upstream Tag: v0.8.3\n' +
+        '- Upstream Commit: abc1234\n' +
+        '- Notes:\n' +
+        `  - ${DEFAULT_RELEASE_NOTES}\n`,
+    );
+  });
+
   test('inserts the newest version section first', () => {
     const result = upsertReleaseMapping(CURRENT_CONTENT, {
       mediumVersion: '1.0.1',
@@ -151,6 +172,30 @@ describe('upsertReleaseMapping', () => {
       result.indexOf('## 1.0.2'),
     );
     expect(result.indexOf('## 1.0.2')).toBeLessThan(result.indexOf('## 1.0.0'));
+  });
+
+  test('rejects multiline notes that would break round-tripping', () => {
+    expect(() =>
+      upsertReleaseMapping(RELEASE_MAPPING_HEADER, {
+        mediumVersion: '1.0.0',
+        releaseDate: '2026-03-19',
+        upstreamTag: 'v0.8.3',
+        upstreamCommit: 'abc1234',
+        notes: 'line 1\nline 2',
+      }),
+    ).toThrow('Release notes must be a single line.');
+  });
+});
+
+describe('getHighestMappedReleaseVersion', () => {
+  test('returns null when the mapping has no entries', () => {
+    expect(getHighestMappedReleaseVersion(RELEASE_MAPPING_HEADER)).toBeNull();
+  });
+
+  test('returns the highest mapped release version by semver', () => {
+    expect(getHighestMappedReleaseVersion(CURRENT_MULTI_ENTRY_CONTENT)).toBe(
+      '1.0.2',
+    );
   });
 });
 
