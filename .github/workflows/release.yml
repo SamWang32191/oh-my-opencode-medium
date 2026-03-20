@@ -3,9 +3,17 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
+      auto-bump:
+        type: choice
+        description: "Auto Bump"
+        default: "no"
+        options:
+          - "no"
+          - "patch"
+          - "minor"
       version:
-        description: Release version (X.Y.Z)
-        required: true
+        description: 'Release version (X.Y.Z), required if Auto Bump = no'
+        required: false
         type: string
       notes:
         description: Optional one-line notes
@@ -27,9 +35,57 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  auto-bump:
+    runs-on: ubuntu-latest
+    if: inputs.auto-bump != 'no'
+    outputs:
+      bumped_version: ${{ steps.bump.outputs[inputs.auto-bump] }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: get-current-version
+        run: |
+          echo "current_version=$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
+      - id: bump
+        uses: "WyriHaximus/github-action-next-semvers@v1"
+        with:
+          version: ${{ steps.get-current-version.outputs.current_version }}
+          bump: ${{ inputs.auto-bump }}
+  ensure-version-not-exists:
+    runs-on: ubuntu-latest
+    if: ${{ !failure() }}
+    needs: [auto-bump]
+    outputs:
+      final_version: ${{ steps.determine-version.outputs.final_version }}
+    steps:
+      - id: determine-version
+        env:
+          auto_bump_version: ${{ needs.auto-bump.outputs.bumped_version }}
+          input_version: ${{ inputs.version }}
+        run: |
+          if [[ -n "$auto_bump_version" ]]; then
+            echo "final_version=$auto_bump_version" >> "$GITHUB_OUTPUT"
+          elif [[ -n "$input_version" ]]; then
+            echo "final_version=$input_version" >> "$GITHUB_OUTPUT"
+          else
+            echo "Either select auto-bump or input version is required";
+            exit 1;
+          fi
+      - id: check-version
+        uses: mukunku/tag-exists-action@v1.7.0
+        with:
+          tag: 'v${{ steps.determine-version.outputs.final_version }}'
+      - id: fail-if-version-exists
+        run: |
+          if [ "${{ steps.check-version.outputs.exists }}" == "true" ]; then
+            echo "Version ${{ steps.determine-version.outputs.final_version }} already exists";
+            exit 1;
+          fi
+
   release:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    needs: ensure-version-not-exists
+    if: ${{ !failure() }}
 
     steps:
       - name: Guard dispatch branch is medium
@@ -93,13 +149,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GITHUB_TOKEN: ${{ github.token }}
-          RELEASE_VERSION: ${{ inputs.version }}
+          FINAL_VERSION: ${{ needs.ensure-version-not-exists.outputs.final_version }}
           RELEASE_NOTES: ${{ inputs.notes }}
           DRY_RUN: ${{ inputs.dry_run }}
           UPSTREAM_REMOTE_URL: https://github.com/alvinunreal/oh-my-opencode-slim.git
         run: |
           set -euo pipefail
-          RELEASE_CI_ARGS=(--version "$RELEASE_VERSION" --body-file "$RUNNER_TEMP/release-body.md")
+          RELEASE_CI_ARGS=(--version "$FINAL_VERSION" --body-file "$RUNNER_TEMP/release-body.md")
 
           if [ -n "${RELEASE_NOTES}" ]; then
             RELEASE_CI_ARGS+=(--notes "$RELEASE_NOTES")
@@ -114,7 +170,7 @@ jobs:
       - name: Upload release body artifact
         uses: actions/upload-artifact@v4
         with:
-          name: release-body-${{ inputs.version }}
+          name: release-body-${{ needs.ensure-version-not-exists.outputs.final_version }}
           path: ${{ runner.temp }}/release-body.md
           if-no-files-found: error
 
@@ -137,12 +193,11 @@ jobs:
         if: ${{ !inputs.dry_run }}
         run: |
           set -euo pipefail
-          git push origin "v${{ inputs.version }}"
-
+          git push origin "v${{ needs.ensure-version-not-exists.outputs.final_version }}"
       - name: Create GitHub Release
         if: ${{ !inputs.dry_run }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh release create "v${{ inputs.version }}" --repo "${{ github.repository }}" --notes-file "$RUNNER_TEMP/release-body.md"
+          gh release create "v${{ needs.ensure-version-not-exists.outputs.final_version }}" --repo "${{ github.repository }}" --notes-file "$RUNNER_TEMP/release-body.md"
