@@ -53,9 +53,9 @@ describe('dynamic-model-selection', () => {
   test('builds assignments and chains for all six agents', () => {
     const plan = buildDynamicModelPlan(
       [
-        m({ model: 'openai/gpt-5.3-codex', reasoning: true, toolcall: true }),
+        m({ model: 'openai/gpt-5.4', reasoning: true, toolcall: true }),
         m({
-          model: 'openai/gpt-5.1-codex-mini',
+          model: 'openai/gpt-5.4-mini',
           reasoning: true,
           toolcall: true,
         }),
@@ -104,7 +104,7 @@ describe('dynamic-model-selection', () => {
   test('supports v2-shadow mode without changing applied engine', () => {
     const plan = buildDynamicModelPlan(
       [
-        m({ model: 'openai/gpt-5.3-codex', reasoning: true, toolcall: true }),
+        m({ model: 'openai/gpt-5.4', reasoning: true, toolcall: true }),
         m({ model: 'chutes/kimi-k2.5', reasoning: true, toolcall: true }),
         m({ model: 'opencode/gpt-5-nano', reasoning: true, toolcall: true }),
       ],
@@ -122,9 +122,9 @@ describe('dynamic-model-selection', () => {
   test('balances provider usage when subscription mode is enabled', () => {
     const plan = buildDynamicModelPlan(
       [
-        m({ model: 'openai/gpt-5.3-codex', reasoning: true, toolcall: true }),
+        m({ model: 'openai/gpt-5.4', reasoning: true, toolcall: true }),
         m({
-          model: 'openai/gpt-5.1-codex-mini',
+          model: 'openai/gpt-5.4-mini',
           reasoning: true,
           toolcall: true,
         }),
@@ -215,14 +215,14 @@ describe('dynamic-model-selection', () => {
     expect(explorer[0]?.model).toContain('minimax-m2.1');
   });
 
-  test('does not apply a positive Gemini bonus in v1 scoring', () => {
+  test('ranks gemini 3.1 pro above base gpt-5.4 in v1 scoring', () => {
     const catalog = [
       m({
         model: 'google/antigravity-gemini-3.1-pro',
         reasoning: true,
         toolcall: true,
       }),
-      m({ model: 'openai/gpt-5.3-codex', reasoning: true, toolcall: true }),
+      m({ model: 'openai/gpt-5.4', reasoning: true, toolcall: true }),
     ];
 
     const oracle = rankModelsV1WithBreakdown(catalog, 'oracle');
@@ -230,9 +230,9 @@ describe('dynamic-model-selection', () => {
     const designer = rankModelsV1WithBreakdown(catalog, 'designer');
     const librarian = rankModelsV1WithBreakdown(catalog, 'librarian');
 
-    expect(oracle[0]?.model).toBe('openai/gpt-5.3-codex');
-    expect(orchestrator[0]?.model).toBe('openai/gpt-5.3-codex');
-    expect(designer[0]?.model).toBe('openai/gpt-5.3-codex');
-    expect(librarian[0]?.model).toBe('openai/gpt-5.3-codex');
+    expect(oracle[0]?.model).toBe('google/antigravity-gemini-3.1-pro');
+    expect(orchestrator[0]?.model).toBe('google/antigravity-gemini-3.1-pro');
+    expect(designer[0]?.model).toBe('google/antigravity-gemini-3.1-pro');
+    expect(librarian[0]?.model).toBe('google/antigravity-gemini-3.1-pro');
   });
 });

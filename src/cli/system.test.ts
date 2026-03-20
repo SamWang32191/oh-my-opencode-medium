@@ -81,11 +81,11 @@ describe('system', () => {
   "capabilities": { "reasoning": true, "toolcall": true, "attachment": false }
 }
 
-openai/gpt-5.3-codex
+openai/gpt-5.4
 {
-  "id": "gpt-5.3-codex",
+  "id": "gpt-5.4",
   "providerID": "openai",
-  "name": "GPT-5.3 Codex",
+  "name": "GPT-5.4",
   "status": "active",
   "cost": { "input": 1, "output": 1, "cache": { "read": 0, "write": 0 } },
   "limit": { "context": 400000, "output": 128000 },

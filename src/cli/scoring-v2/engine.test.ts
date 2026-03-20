@@ -26,9 +26,9 @@ function model(
 
 describe('scoring-v2', () => {
   test('returns explain breakdown with deterministic total', () => {
-    const candidate = model({ model: 'openai/gpt-5.3-codex' });
+    const candidate = model({ model: 'openai/gpt-5.4' });
     const signalMap: ExternalSignalMap = {
-      'openai/gpt-5.3-codex': {
+      'openai/gpt-5.4': {
         source: 'artificial-analysis',
         qualityScore: 70,
         codingScore: 75,
@@ -50,7 +50,7 @@ describe('scoring-v2', () => {
     const ranked = rankModelsV2(
       [
         model({ model: 'zai-coding-plan/glm-4.7', reasoning: false }),
-        model({ model: 'openai/gpt-5.3-codex', reasoning: false }),
+        model({ model: 'openai/gpt-5.4', reasoning: false }),
       ],
       'explorer',
     );
