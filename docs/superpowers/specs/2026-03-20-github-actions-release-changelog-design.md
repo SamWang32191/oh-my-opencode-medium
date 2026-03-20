@@ -36,6 +36,11 @@ a structured changelog. The `--notes` field is intentionally limited to a single
 line so it can be stored in `docs/release-mapping.md`, which makes it unsuitable
 as the main release summary.
 
+The current repository history also includes some direct commits on release
+branches in addition to merged pull requests. Any changelog design that relies
+primarily on PR metadata must account for non-PR commits so release notes do not
+quietly omit shipped changes.
+
 ## Goals
 
 - Remove the requirement to perform releases from a local machine.
@@ -115,6 +120,10 @@ version. GitHub Actions will then perform the release in a reproducible
 environment, generate a structured changelog from merged pull requests, and
 complete publishing without requiring local release tooling.
 
+To avoid overlapping responsibilities with the existing tag-triggered publish
+workflow, the release architecture must be split explicitly rather than letting
+two workflows publish the same tag.
+
 ## Workflow Design
 
 ### Entry Point
@@ -134,25 +143,44 @@ The workflow must run against the `medium` branch head, not an arbitrary commit
 or detached tag input. This keeps the release branch policy aligned with the
 existing SOP.
 
+### Workflow Split
+
+The repository must not end up with two independent workflows both trying to
+publish the same release.
+
+The recommended split is:
+
+- the new manual workflow owns release preparation, verification, changelog
+  generation, release commit creation, tag creation, tag push, npm publish, and
+  GitHub Release creation
+- the existing `.github/workflows/release.yml` tag workflow is either retired or
+  reduced to a narrow verification-only role that does not publish
+
+The implementation must make this ownership explicit. Pushing `vX.Y.Z` from the
+manual workflow must not trigger a second publish attempt for the same version.
+
 ### Release Steps
 
 The workflow should execute these stages in order:
 
 1. check out the repository with full history
-2. validate the target branch and requested version
-3. resolve the latest reachable upstream stable tag and commit
-4. determine the previous stable fork release tag
-5. collect merged pull requests in the release range
-6. generate categorized changelog markdown
-7. update `package.json`
-8. update `docs/release-mapping.md`
-9. create the release commit
-10. create and push `vX.Y.Z`
-11. publish to npm with Trusted Publisher
-12. create the GitHub Release using generated release body content
+2. configure git remotes needed for provenance resolution
+3. validate the target branch and requested version
+4. resolve the latest reachable upstream stable tag and commit
+5. determine the previous stable fork release tag
+6. collect merged pull requests and direct commits in the release range
+7. generate categorized changelog markdown
+8. run release gates: lint, typecheck, test, and build
+9. update `package.json`
+10. update `docs/release-mapping.md`
+11. create the release commit
+12. create and push `vX.Y.Z`
+13. publish to npm with Trusted Publisher
+14. create the GitHub Release using generated release body content
 
 The workflow should fail before mutating git state if version validation,
-provenance resolution, or changelog generation cannot complete safely.
+provenance resolution, changelog generation, or release verification cannot
+complete safely.
 
 ## Architecture
 
@@ -189,6 +217,8 @@ data so it can be unit-tested without network coupling.
 
 Add a thin workflow-facing script or module that:
 
+- creates or validates the `upstream` remote in the CI runner
+- fetches upstream tags needed by the provenance helpers
 - queries GitHub for merged PRs in the selected release range
 - normalizes PR number, title, labels, url, and merge commit data
 - passes normalized data into the changelog builder
@@ -214,11 +244,23 @@ possible.
 
 ### Data Source
 
-The changelog range is the set of merged pull requests between the previous
-stable release tag and the current `medium` head included in the workflow run.
+The changelog range is the set of merged pull requests and direct commits between
+the previous stable release tag and the current `medium` head included in the
+workflow run.
 
 The preferred source of truth is GitHub pull request metadata rather than raw
 git commit messages.
+
+If a commit in the release range is not associated with a merged pull request,
+the workflow must not silently drop it. It should either:
+
+- place the commit in a fallback `Other` section using the commit subject, or
+- fail with an explicit message if the repository chooses to enforce PR-only
+  release history
+
+For this repository, the safer default is to include unmatched direct commits in
+`Other` so the changelog stays complete while the team gradually improves PR
+discipline.
 
 ### Classification Priority
 
@@ -261,10 +303,14 @@ tag and upstream commit, ahead of the categorized changelog.
 
 ### Empty Results
 
-If no merged pull requests are found in the release range, the workflow should
-still allow the release but insert a clear placeholder line such as:
+If no merged pull requests or direct commits are found in the release range, the
+workflow should still allow the release but insert a clear placeholder line such
+as:
 
 `No categorized pull requests found.`
+
+If the range contains only unmatched direct commits, the changelog should still
+contain those entries under `Other` rather than using the empty placeholder.
 
 ## Error Handling
 
@@ -274,9 +320,12 @@ The workflow must fail with actionable errors when:
 - the requested version is not greater than the highest mapped release version
 - the `medium` branch state cannot be checked reliably
 - the upstream stable provenance tag cannot be resolved from reachable history
+- the CI runner cannot create or validate the `upstream` remote needed for
+  provenance resolution
 - the previous release range cannot be computed safely
 - GitHub API access fails while collecting release PRs
 - `package.json` or `docs/release-mapping.md` cannot be updated deterministically
+- lint, typecheck, test, or build fails before release mutation
 
 The workflow must not fail only because:
 
@@ -294,6 +343,7 @@ Add tests for the changelog builder covering:
 
 - label-based categorization
 - title-prefix fallback categorization
+- unmatched direct commits going to `Other`
 - unknown PRs going to `Other`
 - deterministic section ordering
 - empty changelog output
@@ -309,7 +359,9 @@ The workflow should verify:
 
 - full-history checkout for ancestry-sensitive git operations
 - release runs only from `medium`
+- the CI runner configures `upstream` before provenance resolution
 - npm publish still uses `--provenance --access public`
+- lint, typecheck, tests, and build run before commit/tag mutation
 - release creation uses the generated release body rather than manual text entry
 
 ### Documentation Verification
@@ -323,10 +375,12 @@ doc should mark it as secondary rather than primary.
 1. add the changelog builder module and tests
 2. add a workflow-facing release script that reuses existing provenance helpers
 3. create the manual GitHub Actions release workflow
-4. update `docs/medium-release.md` to describe the new operator flow
-5. keep the local release script temporarily as fallback until the workflow is
+4. update or retire `.github/workflows/release.yml` so publish ownership is
+   unambiguous and non-duplicated
+5. update `docs/medium-release.md` to describe the new operator flow
+6. keep the local release script temporarily as fallback until the workflow is
    proven stable
-6. decide in a later cleanup whether to retire `scripts/release.ts`
+7. decide in a later cleanup whether to retire `scripts/release.ts`
 
 ## Open Questions Resolved
 
