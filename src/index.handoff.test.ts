@@ -81,6 +81,32 @@ describe('handoff command wiring', () => {
     );
   });
 
+  test('skill-backed commands stay enabled when explicitly configured true', async () => {
+    const projectDir = path.join(tempDir, 'project-skill-enabled');
+    const projectConfigDir = path.join(projectDir, '.opencode');
+    const skillsDir = path.join(projectConfigDir, 'skills');
+    fs.mkdirSync(skillsDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(projectConfigDir, 'oh-my-opencode-medium.json'),
+      JSON.stringify({
+        skill_slash_command_conversion: true,
+      }),
+    );
+    fs.writeFileSync(
+      path.join(skillsDir, 'handoff.md'),
+      '---\ndescription: project handoff\n---\nProject skill handoff template',
+    );
+
+    const plugin = await createPluginFor(projectDir);
+    const opencodeConfig: OpenCodeConfig = {};
+    await plugin.config(opencodeConfig as Record<string, unknown>);
+
+    expect(opencodeConfig.command?.handoff).toBeDefined();
+    expect(opencodeConfig.command?.handoff.template).toContain(
+      'Project skill handoff template',
+    );
+  });
+
   test('explicit user handoff override wins and unrelated commands stay', async () => {
     const projectDir = path.join(tempDir, 'project-user-override');
     const skillsDir = path.join(projectDir, '.opencode', 'skills');
@@ -110,6 +136,49 @@ describe('handoff command wiring', () => {
       'User-defined handoff template',
     );
     expect(opencodeConfig.command?.handoff.agent).toBe('researcher');
+    expect(opencodeConfig.command?.review).toEqual({
+      template: 'Existing review command',
+    });
+    expect(opencodeConfig.command?.review?.template).not.toContain(
+      'Project review template',
+    );
+  });
+
+  test('disabling skill-backed commands preserves builtin and user commands', async () => {
+    const projectDir = path.join(tempDir, 'project-skill-disabled');
+    const projectConfigDir = path.join(projectDir, '.opencode');
+    const skillsDir = path.join(projectConfigDir, 'skills');
+    fs.mkdirSync(skillsDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(projectConfigDir, 'oh-my-opencode-medium.json'),
+      JSON.stringify({
+        skill_slash_command_conversion: false,
+      }),
+    );
+    fs.writeFileSync(
+      path.join(skillsDir, 'handoff.md'),
+      '---\ndescription: project handoff\n---\nProject skill handoff template',
+    );
+    fs.writeFileSync(
+      path.join(skillsDir, 'review.md'),
+      '---\ndescription: project review\n---\nProject review template',
+    );
+
+    const plugin = await createPluginFor(projectDir);
+    const opencodeConfig: OpenCodeConfig = {
+      command: {
+        review: {
+          template: 'Existing review command',
+        },
+      },
+    };
+    await plugin.config(opencodeConfig as Record<string, unknown>);
+
+    expect(opencodeConfig.command?.handoff).toBeDefined();
+    expect(opencodeConfig.command?.handoff.agent).toBe('orchestrator');
+    expect(opencodeConfig.command?.handoff.template).not.toContain(
+      'Project skill handoff template',
+    );
     expect(opencodeConfig.command?.review).toEqual({
       template: 'Existing review command',
     });

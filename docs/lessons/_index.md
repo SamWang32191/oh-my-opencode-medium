@@ -4,6 +4,7 @@
 
 | Card | Scope | Tags | Date |
 |---|---|---|---|
+| `user-facing-config-changes-must-update-readme-reference-and-release-notes` | project | `docs`, `config`, `readme`, `release`, `schema` | 2026-03-20 |
 | `openai-model-string-changes-affect-scoring-tests` | project | `tests`, `scoring`, `model-selection`, `openai`, `heuristics` | 2026-03-20 |
 | `prompt-command-tests-should-lock-required-structure` | project | `prompts`, `commands`, `tests`, `templates`, `review` | 2026-03-19 |
 | `machine-managed-file-seed-must-match-parser-canonical-format` | project | `release`, `parser`, `docs`, `automation`, `canonical-format` | 2026-03-19 |

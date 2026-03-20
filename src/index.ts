@@ -138,6 +138,8 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
 
     config: async (opencodeConfig: Record<string, unknown>) => {
       const loadedSkills = await discoverAllSkills(ctx.directory);
+      const skillCommands =
+        config.skill_slash_command_conversion === false ? {} : loadedSkills;
       const builtinCommands = createBuiltinCommands();
       const existingCommands =
         (opencodeConfig.command as
@@ -155,7 +157,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
 
       opencodeConfig.command = mergeCommands({
         builtin: builtinCommands,
-        skills: loadedSkills,
+        skills: skillCommands,
         existing: existingCommands,
       });
 

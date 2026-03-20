@@ -435,7 +435,20 @@ The installer generates this file with the OpenAI preset by default. You can man
 | `presets.<name>.<agent>.variant` | string | - | Agent variant for reasoning effort (e.g., `"low"`, `"medium"`, `"high"`) |
 | `presets.<name>.<agent>.skills` | string[] | - | Array of skill names the agent can use (`"*"` for all, `"!item"` to exclude) |
 | `presets.<name>.<agent>.mcps` | string[] | - | Array of MCP names the agent can use (`"*"` for all, `"!item"` to exclude) |
+| `skill_slash_command_conversion` | boolean | `true` | Convert discovered skills into slash commands; set to `false` to keep skills installed without auto-registering their slash commands |
 | `tmux.enabled` | boolean | `false` | Enable tmux pane spawning for sub-agents |
 | `tmux.layout` | string | `"main-vertical"` | Layout preset: `main-vertical`, `main-horizontal`, `tiled`, `even-horizontal`, `even-vertical` |
 | `tmux.main_pane_size` | number | `60` | Main pane size as percentage (20-80) |
 | `disabled_mcps` | string[] | `[]` | MCP server IDs to disable globally (e.g., `"websearch"`) |
+
+**Example toggle:**
+
+```jsonc
+{
+  "skill_slash_command_conversion": false
+}
+```
+
+When disabled, discovered skills are still available on disk, but the plugin
+does not register their slash commands. Built-in commands and user-defined
+commands still work normally.

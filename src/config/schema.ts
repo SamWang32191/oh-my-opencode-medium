@@ -159,6 +159,11 @@ export const PluginConfigSchema = z.object({
     description:
       'Enable hash-anchored read/edit workflow. Enabled by default; set to false to disable.',
   }),
+  skill_slash_command_conversion: z.boolean().optional().meta({
+    default: true,
+    description:
+      'Convert discovered skills into slash commands. Enabled by default; set to false to keep skills on disk without registering slash commands.',
+  }),
   manualPlan: ManualPlanSchema.optional(),
   presets: z.record(z.string(), PresetSchema).optional(),
   agents: z.record(z.string(), AgentOverrideConfigSchema).optional(),

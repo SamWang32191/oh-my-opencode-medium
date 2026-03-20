@@ -94,6 +94,38 @@ describe('loadPluginConfig', () => {
     expect(config.hashline_edit).toBe(true);
   });
 
+  test('loads skill_slash_command_conversion flag when configured', () => {
+    const projectDir = path.join(tempDir, 'project');
+    const projectConfigDir = path.join(projectDir, '.opencode');
+    fs.mkdirSync(projectConfigDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(projectConfigDir, 'oh-my-opencode-medium.json'),
+      JSON.stringify({
+        skill_slash_command_conversion: false,
+      }),
+    );
+
+    const config = loadPluginConfig(projectDir);
+    expect(config.skill_slash_command_conversion).toBe(false);
+  });
+
+  test('leaves skill_slash_command_conversion unset when omitted', () => {
+    const projectDir = path.join(tempDir, 'project');
+    const projectConfigDir = path.join(projectDir, '.opencode');
+    fs.mkdirSync(projectConfigDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(projectConfigDir, 'oh-my-opencode-medium.json'),
+      JSON.stringify({
+        agents: {
+          oracle: { model: 'test/model' },
+        },
+      }),
+    );
+
+    const config = loadPluginConfig(projectDir);
+    expect(config.skill_slash_command_conversion).toBeUndefined();
+  });
+
   test('loads manual plan structure when configured', () => {
     const projectDir = path.join(tempDir, 'project');
     const projectConfigDir = path.join(projectDir, '.opencode');

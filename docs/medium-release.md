@@ -34,6 +34,11 @@ The dry run prints:
 - upstream commit
 - GitHub Release body
 
+When preparing release notes, call out user-facing config changes explicitly.
+For example, mention new root-level toggles such as
+`skill_slash_command_conversion`, what they default to, and what behavior they
+disable.
+
 The preview refreshes upstream tags first so it resolves against the same
 upstream tag state as a real release. It still does not modify files, create
 commits, update `docs/release-mapping.md`, or create tags.
