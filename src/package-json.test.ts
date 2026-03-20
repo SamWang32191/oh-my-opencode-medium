@@ -47,7 +47,7 @@ describe('package.json metadata', () => {
     expect(packageJson.scripts?.['release:medium:dry']).toBeUndefined();
   });
 
-  test('publishes the documented medium schema with hashline_edit', () => {
+  test('publishes the documented medium schema with config toggles', () => {
     expect(existsSync('oh-my-opencode-medium.schema.json')).toBe(true);
 
     const schema = JSON.parse(
@@ -61,6 +61,13 @@ describe('package.json metadata', () => {
       default: true,
       description:
         'Enable hash-anchored read/edit workflow. Enabled by default; set to false to disable.',
+    });
+
+    expect(schema.properties?.skill_slash_command_conversion).toEqual({
+      type: 'boolean',
+      default: true,
+      description:
+        'Convert discovered skills into slash commands. Enabled by default; set to false to keep skills on disk without registering slash commands.',
     });
   });
 });

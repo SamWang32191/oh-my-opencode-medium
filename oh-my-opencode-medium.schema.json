@@ -20,6 +20,11 @@
       "description": "Enable hash-anchored read/edit workflow. Enabled by default; set to false to disable.",
       "type": "boolean"
     },
+    "skill_slash_command_conversion": {
+      "default": true,
+      "description": "Convert discovered skills into slash commands. Enabled by default; set to false to keep skills on disk without registering slash commands.",
+      "type": "boolean"
+    },
     "manualPlan": {
       "type": "object",
       "properties": {

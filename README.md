@@ -91,6 +91,22 @@ Use the feature as a `read -> edit -> re-read` loop:
 
 If the file changed after the last read, the edit is rejected and the tool returns fresh `>>> LINE#ID` recovery snippets so the agent can retry against the current file instead of applying a stale edit.
 
+### Skill Slash Commands
+
+Discovered skills are converted into slash commands by default. Add this only if
+you want to keep installed skills available on disk without auto-registering
+their slash commands:
+
+```jsonc
+{
+  "skill_slash_command_conversion": false
+}
+```
+
+This disables only skill-backed slash command generation. Built-in commands such
+as `/handoff` and any commands you define directly in OpenCode config still stay
+registered.
+
 ### For LLM Agents
 
 Paste this into any coding agent:
