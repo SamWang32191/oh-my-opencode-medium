@@ -121,6 +121,7 @@ https://raw.githubusercontent.com/SamWang32191/oh-my-opencode-medium/medium/READ
 **Additional guides:**
 - **[Provider Configurations](docs/provider-configurations.md)** - Config examples for all supported providers
 - **[Tmux Integration](docs/tmux-integration.md)** - Real-time agent monitoring with tmux
+**[Quick Reference](docs/quick-reference.md)** - Config, fallback behavior, skills, MCPs
 
 Built-in command: use `/handoff` to generate a phase-1 continuation brief from
 the current conversation context plus git context when available. In this first
@@ -374,6 +375,7 @@ If any agent fails to respond, check your provider authentication and config fil
 - **[Installation Guide](docs/installation.md)** - Detailed installation and troubleshooting
 - **[Cartography Skill](docs/cartography.md)** - Custom skill for repository mapping + codemap generation
 - **[Tmux Integration](docs/tmux-integration.md)** - Real-time agent monitoring with tmux
+**[Quick Reference](docs/quick-reference.md)** - Config, fallback behavior, skills, MCPs
 
 ---
 

@@ -280,10 +280,8 @@ export class ForegroundFallbackManager {
       if (!this.sessionTried.has(sessionID)) {
         this.sessionTried.set(sessionID, new Set());
       }
-      const tried = this.sessionTried.get(sessionID);
-      if (!tried) {
-        return;
-      }
+      // biome-ignore lint/style/noNonNullAssertion: We just set this above
+      const tried = this.sessionTried.get(sessionID)!;
       if (currentModel) tried.add(currentModel);
 
       const nextModel = chain.find((m) => !tried.has(m));
