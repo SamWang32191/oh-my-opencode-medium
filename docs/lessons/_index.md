@@ -4,6 +4,7 @@
 
 | Card | Scope | Tags | Date |
 |---|---|---|---|
+| `opencode-lsp-binaries-live-in-cache-not-config-dir` | project | `opencode`, `lsp`, `cache`, `config`, `paths` | 2026-03-26 |
 | `user-facing-config-changes-must-update-readme-reference-and-release-notes` | project | `docs`, `config`, `readme`, `release`, `schema` | 2026-03-20 |
 | `openai-model-string-changes-affect-scoring-tests` | project | `tests`, `scoring`, `model-selection`, `openai`, `heuristics` | 2026-03-20 |
 | `prompt-command-tests-should-lock-required-structure` | project | `prompts`, `commands`, `tests`, `templates`, `review` | 2026-03-19 |
