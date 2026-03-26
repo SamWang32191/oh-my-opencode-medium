@@ -201,6 +201,7 @@ export class LSPClient {
   private proc: Subprocess<'pipe', 'pipe', 'pipe'> | null = null;
   private connection: MessageConnection | null = null;
   private openedFiles = new Set<string>();
+  private fileContents = new Map<string, string>();
   private stderrBuffer: string[] = [];
   private processExited = false;
   private diagnosticsStore = new Map<string, Diagnostic[]>();
@@ -391,12 +392,33 @@ export class LSPClient {
 
   async openFile(filePath: string): Promise<void> {
     const absPath = resolve(filePath);
+    const text = readFileSync(absPath, 'utf-8');
+    const uri = pathToFileURL(absPath).href;
+
     if (this.openedFiles.has(absPath)) {
-      log('[lsp] openFile: already open, skipping', { filePath: absPath });
+      const previousText = this.fileContents.get(absPath);
+      if (previousText === text) {
+        log('[lsp] openFile: already open, content unchanged', {
+          filePath: absPath,
+        });
+        return;
+      }
+
+      log('[lsp] openFile: content changed, sending didChange', {
+        filePath: absPath,
+        oldSize: previousText?.length ?? 0,
+        newSize: text.length,
+      });
+
+      this.connection?.sendNotification('textDocument/didChange', {
+        textDocument: { uri, version: (this.getFileVersion(absPath) ?? 0) + 1 },
+        contentChanges: [{ text }],
+      });
+      this.fileContents.set(absPath, text);
+      await new Promise((r) => setTimeout(r, 500));
       return;
     }
 
-    const text = readFileSync(absPath, 'utf-8');
     const ext = extname(absPath);
     const languageId = getLanguageId(ext);
 
@@ -408,15 +430,22 @@ export class LSPClient {
 
     this.connection?.sendNotification('textDocument/didOpen', {
       textDocument: {
-        uri: pathToFileURL(absPath).href,
+        uri,
         languageId,
         version: 1,
         text,
       },
     });
     this.openedFiles.add(absPath);
+    this.fileContents.set(absPath, text);
 
     await new Promise((r) => setTimeout(r, 1000));
+  }
+
+  private fileVersions = new Map<string, number>();
+
+  private getFileVersion(absPath: string): number {
+    return this.fileVersions.get(absPath) ?? 1;
   }
 
   async definition(
@@ -503,6 +532,8 @@ export class LSPClient {
     this.connection = null;
     this.processExited = true;
     this.diagnosticsStore.clear();
+    this.fileContents.clear();
+    this.fileVersions.clear();
     log('[lsp] LSPClient.stop: complete', { server: this.server.id });
   }
 }
