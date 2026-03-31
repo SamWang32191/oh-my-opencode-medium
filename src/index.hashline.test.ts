@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'bun:test';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { PHASE_REMINDER_TEXT } from './config/constants';
 
 // Test the hashline wiring by creating temporary config files
 
@@ -421,8 +422,7 @@ describe('hashline wiring', () => {
     )(afterInput, afterOutput);
 
     // postReadNudge should have appended its nudge text to output
-    expect(afterOutput.output).toContain('Workflow Reminder');
-    expect(afterOutput.output).toContain('delegate based on rules');
+    expect(afterOutput.output).toContain(PHASE_REMINDER_TEXT);
   });
 
   // Test 6: jsonErrorRecovery hook runs for write tool (write is NOT in exclude list)
@@ -763,11 +763,10 @@ describe('hashline wiring', () => {
     expect(afterOutput.output).toMatch(/\d+#[A-Za-z0-9]+\|/);
 
     // Verify postReadNudge ran (appended its nudge text - at the END)
-    expect(afterOutput.output).toContain('Workflow Reminder');
-    expect(afterOutput.output).toContain('delegate based on rules');
+    expect(afterOutput.output).toContain(PHASE_REMINDER_TEXT);
 
     // Verify postReadNudge is at the end by checking position
-    const nudgePos = afterOutput.output.indexOf('Workflow Reminder');
+    const nudgePos = afterOutput.output.indexOf(PHASE_REMINDER_TEXT);
     const contentEnd = afterOutput.output.lastIndexOf('\n</content>');
     // The nudge should appear AFTER the content (near the end)
     expect(nudgePos).toBeGreaterThan(contentEnd);

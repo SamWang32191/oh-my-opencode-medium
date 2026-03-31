@@ -2,6 +2,7 @@ export type { AutoUpdateCheckerOptions } from './auto-update-checker';
 export { createAutoUpdateCheckerHook } from './auto-update-checker';
 export { createChatHeadersHook } from './chat-headers';
 export { createDelegateTaskRetryHook } from './delegate-task-retry';
+export { createFilterAvailableSkillsHook } from './filter-available-skills';
 export {
   ForegroundFallbackManager,
   isRateLimitError,
@@ -10,4 +11,4 @@ export { createHashlineEditDiffEnhancerHook } from './hashline-edit-diff-enhance
 export { createHashlineReadEnhancerHook } from './hashline-read-enhancer';
 export { createJsonErrorRecoveryHook } from './json-error-recovery';
 export { createPhaseReminderHook } from './phase-reminder';
-export { createPostReadNudgeHook } from './post-read-nudge';
+export { createPostFileToolNudgeHook } from './post-file-tool-nudge';

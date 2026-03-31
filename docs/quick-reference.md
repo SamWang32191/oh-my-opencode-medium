@@ -1,25 +1,33 @@
-# Quick Reference Guide
+# Quick Reference
 
 Complete reference for oh-my-opencode-medium configuration and capabilities.
 
-## Table of Contents
+## 🚀 Getting Started
 
-- [Presets](#presets)
-- [Skills](#skills)
-  - [Cartography](#cartography)
-- [MCP Servers](#mcp-servers)
-- [Tools & Capabilities](#tools--capabilities)
-- [Configuration](#configuration)
+| Doc | Contents |
+|-----|----------|
+| [Installation Guide](installation.md) | CLI flags, `--reset`, auth, troubleshooting |
+| [Author's Preset](authors-preset.md) | The exact config the author runs daily — OpenAI + Fireworks AI + GitHub Copilot |
+| [Provider Configurations](provider-configurations.md) | OpenAI, Kimi, Copilot, ZAI, Fireworks AI, mixing providers, fallback chains |
 
----
+## ✨ Features
 
-## Presets
+| Doc | Contents |
+|-----|----------|
+| [Council Agent](council.md) | Multi-LLM consensus, presets, role prompts, timeouts |
+| [Tmux Integration](tmux-integration.md) | Real-time pane monitoring, layouts, troubleshooting |
+| [Cartography Skill](cartography.md) | Hierarchical codemap generation |
 
-The default installer generates an OpenAI preset. To use alternative providers (Kimi, GitHub Copilot, ZAI Coding Plan), see **[Provider Configurations](provider-configurations.md)** for step-by-step instructions and full config examples.
+## ⚙️ Config & Reference
 
-### Switching Presets
+| Doc | Contents |
+|-----|----------|
+| [Skills](skills.md) | `simplify`, `agent-browser`, `cartography` — skills assignment syntax |
+| [MCPs](mcps.md) | `websearch`, `context7`, `grep_app` — permissions per agent, global disable |
+| [Tools](tools.md) | Background tasks, LSP, code search (`ast_grep`), formatters |
+| [Configuration](configuration.md) | Config files, prompt overriding, JSONC, full option reference table |
 
-**Method 1: Edit Config File**
+## 💡 Author's Setup
 
 Edit `~/.config/opencode/oh-my-opencode-medium.json` (or `.jsonc`) and change the `preset` field:
 

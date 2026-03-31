@@ -51,6 +51,9 @@ opencode.jsonc
 # Planning docs (not for commit)
 TIMEOUT_PLAN.md
 .worktrees/
+GOAL.md
+PR-NOTES.md
+REVIEW.md
 
 # Python
 __pycache__/

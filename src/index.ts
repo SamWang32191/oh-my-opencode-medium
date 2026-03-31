@@ -6,15 +6,17 @@ import { mergeCommands } from './commands/register';
 import type { CommandDefinition } from './commands/types';
 import { loadPluginConfig, type TmuxConfig } from './config';
 import { parseList } from './config/agent-mcps';
+import { CouncilManager } from './council';
 import {
   createAutoUpdateCheckerHook,
   createChatHeadersHook,
   createDelegateTaskRetryHook,
+  createFilterAvailableSkillsHook,
   createHashlineEditDiffEnhancerHook,
   createHashlineReadEnhancerHook,
   createJsonErrorRecoveryHook,
   createPhaseReminderHook,
-  createPostReadNudgeHook,
+  createPostFileToolNudgeHook,
   ForegroundFallbackManager,
 } from './hooks';
 import { createBuiltinMcps } from './mcp';
@@ -23,6 +25,7 @@ import {
   ast_grep_replace,
   ast_grep_search,
   createBackgroundTools,
+  createCouncilTool,
   createHashlineEditTool,
   lsp_diagnostics,
   lsp_find_references,
@@ -101,6 +104,20 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
     tmuxConfig,
     config,
   );
+
+  // Initialize council tools (only when council is configured)
+  const councilTools = config.council
+    ? createCouncilTool(
+        ctx,
+        new CouncilManager(
+          ctx,
+          config,
+          backgroundManager.getDepthTracker(),
+          tmuxConfig.enabled,
+        ),
+      )
+    : {};
+
   const mcps = createBuiltinMcps(config.disabled_mcps);
 
   // Initialize TmuxSessionManager to handle OpenCode's built-in Task tool sessions
@@ -115,8 +132,14 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
   // Initialize phase reminder hook for workflow compliance
   const phaseReminderHook = createPhaseReminderHook();
 
-  // Initialize post-read nudge hook
-  const postReadNudgeHook = createPostReadNudgeHook();
+  // Initialize available skills filter hook
+  const filterAvailableSkillsHook = createFilterAvailableSkillsHook(
+    ctx,
+    config,
+  );
+
+  // Initialize post-file-tool nudge hook
+  const postFileToolNudgeHook = createPostFileToolNudgeHook();
 
   const chatHeadersHook = createChatHeadersHook(ctx);
 
@@ -141,6 +164,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
   // Build tool map - edit tool is registered by default, unless explicitly disabled
   const toolMap = {
     ...backgroundTools,
+    ...councilTools,
     lsp_goto_definition,
     lsp_find_references,
     lsp_diagnostics,
@@ -312,8 +336,11 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         Object.assign(configMcp, mcps);
       }
 
-      // Get all MCP names from our config
-      const allMcpNames = Object.keys(mcps);
+      // Get all MCP names from the merged config (built-in + custom)
+      const mergedMcpConfig = opencodeConfig.mcp as
+        | Record<string, unknown>
+        | undefined;
+      const allMcpNames = Object.keys(mergedMcpConfig ?? mcps);
 
       // For each agent, create permission rules based on their mcps list
       for (const [agentName, agentConfig] of Object.entries(agents)) {
@@ -406,9 +433,31 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
 
     'chat.headers': chatHeadersHook['chat.headers'],
 
-    // Inject phase reminder before sending to API (doesn't show in UI)
-    'experimental.chat.messages.transform':
-      phaseReminderHook['experimental.chat.messages.transform'],
+    // Inject phase reminder and filter available skills before sending to API (doesn't show in UI)
+    'experimental.chat.messages.transform': async (
+      input: Record<string, never>,
+      output: { messages: unknown[] },
+    ): Promise<void> => {
+      // Type assertion since we know the structure matches MessageWithParts[]
+      const typedOutput = output as {
+        messages: Array<{
+          info: { role: string; agent?: string; sessionID?: string };
+          parts: Array<{
+            type: string;
+            text?: string;
+            [key: string]: unknown;
+          }>;
+        }>;
+      };
+      await phaseReminderHook['experimental.chat.messages.transform'](
+        input,
+        typedOutput,
+      );
+      await filterAvailableSkillsHook['experimental.chat.messages.transform'](
+        input,
+        typedOutput,
+      );
+    },
 
     // Pre-tool hook: capture old content for write diff enhancement
     'tool.execute.before': async (input, output) => {
@@ -418,9 +467,9 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       );
     },
 
-    // Post-tool hooks: hashline diff/read enhancement + retry guidance + post-read nudge
-    // Order matters: hashline diff enhancer runs first (to attach diff metadata),
-    // then hashline read enhancer runs (to transform read output), then existing hooks
+    // Post-tool hooks: hashline diff/read enhancement + retry guidance + file-tool nudge
+    // Order matters: hashline diff enhancer runs first, then hashline read enhancer,
+    // then the existing retry / JSON recovery / post-file hooks.
     'tool.execute.after': async (input, output) => {
       // Run hashline diff enhancer first (attaches diff metadata to output)
       await hashlineEditDiffEnhancerHook['tool.execute.after'](
@@ -457,7 +506,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         },
       );
 
-      await postReadNudgeHook['tool.execute.after'](
+      await postFileToolNudgeHook['tool.execute.after'](
         input as {
           tool: string;
           sessionID?: string;
